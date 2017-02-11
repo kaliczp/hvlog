@@ -1,0 +1,10 @@
+*~
+*elf
+*bin
+*map
+*o
+snippets
+startup_stm32*.s
+stm32*.ld
+system_stm32*.c
+TAGS
