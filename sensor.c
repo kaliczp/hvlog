@@ -5,21 +5,21 @@
 * Date      2017-02-11
 * Brief     Sensor with interrupt
 
-    hvlog -- a simple logger based on STM32L0x1 MCU and an EEPROM
-    Copyright (C) 2017 Péter Kalicz
+hvlog -- a simple logger based on STM32L0x1 MCU and an EEPROM
+Copyright (C) 2017 Péter Kalicz
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
 
 #include "sensor.h"
@@ -57,15 +57,15 @@ void Configure_GPIO_Sensor(void)
 
 /**
    - Handling EXTI IRQ
-  */
+*/
 void EXTI0_1_IRQHandler(void)
 {
   if((EXTI->PR & EXTI_PR_PR0) == EXTI_PR_PR0)
-  {
-    /* Clear EXTI0 flag */
-    EXTI->PR = EXTI_PR_PR0;	
+    {
+      /* Clear EXTI0 flag */
+      EXTI->PR = EXTI_PR_PR0;	
 	
-    /* Sensed flag set */
-    SensedData = 1;
-  }
+      /* Sensed flag set */
+      SensedData = 1;
+    }
 }
