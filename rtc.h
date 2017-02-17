@@ -3,7 +3,7 @@
 * Author    Péter Kalicz
 * Version   V0.1
 * Date      2017-02-11
-* Brief     Sensor with interrupt
+* Brief     RTC header
 
 hvlog -- a simple logger based on STM32L0x1 MCU and an EEPROM
 Copyright (C) 2017 Péter Kalicz
@@ -23,5 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
 
 #include "stm32l0xx.h"
-#include "sensor.h"
-#include "rtc.h"
+
+void Configure_RTC(void);
+void Init_RTC(uint32_t Time);
+void RTC_IRQHandler(void);

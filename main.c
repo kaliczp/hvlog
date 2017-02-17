@@ -27,6 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 int main(void)
 {
   Configure_GPIO_Sensor();
+  Configure_RTC();
+  Init_RTC(0);
   while(1)
     {
       if(SensedData == 1)
