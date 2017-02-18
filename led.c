@@ -22,7 +22,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
 
-#include "stm32l0xx.h"
-#include "sensor.h"
-#include "rtc.h"
 #include "led.h"
+
+
+/**
+   - GPIO clock enable
+   - Configures output GPIO PA3
+*/
+void Configure_GPIO_LED(void)
+{
+  /* (1) Enable the peripheral clock of GPIOA */
+  /* (2) Select output mode (01) on GPIOA pin 3 */
+  RCC->IOPENR |= RCC_IOPENR_GPIOAEN; /* (1) */  
+  GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODE3)) 
+    | (GPIO_MODER_MODE3_0); /* (2) */  
+}

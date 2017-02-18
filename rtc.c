@@ -59,9 +59,10 @@ void Configure_RTC(void)
   /* (10) Modify alarm A mask to have an interrupt each 1/60Hz (1 mins) */
   /* (11) Enable alarm A and alarm A interrupt */
   /* (12) Disable write access */
+
   RTC->WPR = 0xCA; /* (7) */
   RTC->WPR = 0x53; /* (7) */
-  RTC->CR &=~ RTC_CR_ALRAE; /* (8) */
+  RTC->CR &= ~RTC_CR_ALRAE; /* (8) */
   while((RTC->ISR & RTC_ISR_ALRAWF) != RTC_ISR_ALRAWF) /* (9) */
   { 
     /* add time out here for a robust application */
@@ -70,18 +71,31 @@ void Configure_RTC(void)
   RTC->CR = RTC_CR_ALRAIE | RTC_CR_ALRAE; /* (11) */ 
   RTC->WPR = 0xFE; /* (12) */
   RTC->WPR = 0x64; /* (12) */
+  /* (13) Tamper configuration:
+     - Disable precharge (PU)
+     - RTCCLK/256 tamper sampling frequency
+     - Activate time stamp on tamper detection even if TSE=0
+     - input rising edge trigger detection on RTC_TAMP2 (PA0)
+     - Tamper interrupt enable
+     - No erase backup registers */
+  RTC->TAMPCR = RTC_TAMPCR_TAMPPUDIS | RTC_TAMPCR_TAMPFREQ | RTC_TAMPCR_TAMPTS | RTC_TAMPCR_TAMP2E | RTC_TAMPCR_TAMPIE | RTC_TAMPCR_TAMP2NOERASE; /* (13) */
   
   /* Configure exti for RTC IT */
-  /* (13) unmask line 17 */
-  /* (14) Rising edge for line 17 */
-  EXTI->IMR |= EXTI_IMR_IM17; /* (13) */ 
-  EXTI->RTSR |= EXTI_RTSR_TR17; /* (14) */
+  /* (14) unmask line 17 */
+  /* (15) Rising edge for line 17 */
+  /* (16) unmask line 19 */
+  /* (17) Rising edge for line 19 */
+  EXTI->IMR |= EXTI_IMR_IM17; /* (14) */ 
+  EXTI->RTSR |= EXTI_RTSR_TR17; /* (15) */
+  EXTI->IMR |= EXTI_IMR_IM19; /* (16) */ 
+  EXTI->RTSR |= EXTI_RTSR_TR19; /* (17) */ 
 
+  
   /* Configure NVIC */
-  /* (15) Set priority */
-  /* (16) Enable RTC_IRQn */
-  NVIC_SetPriority(RTC_IRQn, 0x00); /* (15) */ 
-  NVIC_EnableIRQ(RTC_IRQn); /* (16) */ 
+  /* (18) Set priority */
+  /* (19) Enable RTC_IRQn */
+  NVIC_SetPriority(RTC_IRQn, 0x00); /* (18) */ 
+  NVIC_EnableIRQ(RTC_IRQn); /* (19) */ 
 }
 
 /**
@@ -122,8 +136,15 @@ void RTC_IRQHandler(void)
     {
       RTC->ISR &=~ RTC_ISR_ALRAF; /* clear flag */
       EXTI->PR |= EXTI_PR_PR17; /* clear exti line 17 flag */
-      //      GPIOB->ODR ^= (1 << 4) ; /* Toggle Green LED */
+      GPIOA->ODR ^= (1 << 3) ; /* Toggle PA3 */
       // Alarm = 1;
+    }
+  /* Check tamper and timestamp flag */
+  else if(((RTC->ISR & (RTC_ISR_TAMP2F)) == (RTC_ISR_TAMP2F)) && ((RTC->ISR & (RTC_ISR_TSF)) == (RTC_ISR_TSF))) 
+    {
+      RTC->ISR &=~ (RTC_ISR_TAMP2F); /* clear tamper flag */
+      EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
+      // RTC_InitializationMode = 1;
     }
   else
     {
