@@ -136,7 +136,7 @@ void RTC_IRQHandler(void)
     {
       RTC->ISR &=~ RTC_ISR_ALRAF; /* clear flag */
       EXTI->PR |= EXTI_PR_PR17; /* clear exti line 17 flag */
-      GPIOA->ODR ^= (1 << 3) ; /* Toggle PA3 */
+      GPIOA->ODR ^= (1 << 5) ; /* Toggle PA5 */
       // Alarm = 1;
     }
   /* Check tamper and timestamp flag */
