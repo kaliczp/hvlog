@@ -24,6 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 #include "rtc.h"
 
+/* Timestamp sensor indicator */
+volatile uint32_t SensedTime = 0;
+
 /**
    - GPIO clock enable
    - Configures the Push Button GPIO PA0
@@ -134,7 +137,7 @@ void RTC_IRQHandler(void)
   /* Check alarm A flag */
   if((RTC->ISR & (RTC_ISR_ALRAF)) == (RTC_ISR_ALRAF))
     {
-      RTC->ISR &=~ RTC_ISR_ALRAF; /* clear flag */
+      RTC->ISR &= ~RTC_ISR_ALRAF; /* clear flag */
       EXTI->PR |= EXTI_PR_PR17; /* clear exti line 17 flag */
       GPIOA->ODR ^= (1 << 5) ; /* Toggle PA5 */
       // Alarm = 1;
@@ -142,9 +145,12 @@ void RTC_IRQHandler(void)
   /* Check tamper and timestamp flag */
   else if(((RTC->ISR & (RTC_ISR_TAMP2F)) == (RTC_ISR_TAMP2F)) && ((RTC->ISR & (RTC_ISR_TSF)) == (RTC_ISR_TSF))) 
     {
-      RTC->ISR &=~ (RTC_ISR_TAMP2F); /* clear tamper flag */
+      RTC->ISR &= ~(RTC_ISR_TAMP2F); /* clear tamper flag */
+      // Read timestamp data here!!!!
+      RTC->ISR &= ~(RTC_ISR_TSF); /* clear timestamp flag */
+      RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
       EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
-      // RTC_InitializationMode = 1;
+      SensedTime = 1;
     }
   else
     {
