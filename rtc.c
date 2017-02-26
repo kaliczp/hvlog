@@ -107,7 +107,7 @@ void Init_RTC(uint32_t Time)
   /* Configure RTC */
   /* Ref. man. p. 534 */
   /* (1) Write access for RTC registers */
-  /* (2) Enable init phase */
+  /* (2) Enable init phase, stop counter */
   /* (3) Wait until it is allow to modify RTC register values */
   /* (4) set prescaler, 40kHz/64 => 625 Hz, 625Hz/625 => 1Hz */
   /* (5) New time in TR */

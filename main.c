@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 int main(void)
 {
   Configure_GPIO_Sensor();
+  Configure_GPIO_LED();
   Configure_RTC();
   Init_RTC(0);
   while(1)
@@ -34,6 +35,7 @@ int main(void)
       if(SensedData == 1)
 	{
 	  SensedData = 0;
+	  GPIOA->ODR ^= (1 << 5); //toggle LED
 	}
     }
 }

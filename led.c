@@ -27,13 +27,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 /**
    - GPIO clock enable
-   - Configures output GPIO PA3
+   - Configures output GPIO PA5
 */
 void Configure_GPIO_LED(void)
 {
   /* (1) Enable the peripheral clock of GPIOA */
-  /* (2) Select output mode (01) on GPIOA pin 3 */
+  /* (2) Select output mode (01) on GPIOA pin 5 */
   RCC->IOPENR |= RCC_IOPENR_GPIOAEN; /* (1) */  
-  GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODE3)) 
-    | (GPIO_MODER_MODE3_0); /* (2) */  
+  GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODE5)) 
+    | (GPIO_MODER_MODE5_0); /* (2) */
+  /* lit green LED */
+  GPIOA->BSRR = GPIO_BSRR_BS_5;
 }
