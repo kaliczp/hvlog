@@ -41,5 +41,7 @@ int main(void)
 	  OldTimestampDate = TimestampDate;
 	  GPIOA->ODR ^= (1 << 6); //toggle LED
 	}
+      /* Go to sleep */
+      __WFI();
     }
 }
