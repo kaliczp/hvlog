@@ -24,6 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 #include "main.h"
 
+uint32_t OldTimestampTime = 0x00;
+uint32_t OldTimestampDate = 0x00;
+
 int main(void)
 {
   Configure_GPIO_LED();
@@ -34,6 +37,8 @@ int main(void)
       if(SensedTime == 1)
 	{
 	  SensedTime = 0;
+	  OldTimestampTime = TimestampTime;
+	  OldTimestampDate = TimestampDate;
 	  GPIOA->ODR ^= (1 << 6); //toggle LED
 	}
     }

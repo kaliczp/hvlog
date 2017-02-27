@@ -26,6 +26,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 /* Timestamp sensor indicator */
 extern volatile uint32_t SensedTime;
+/* Timestamp values */
+extern volatile uint32_t TimestampTime;
+extern volatile uint32_t TimestampDate;
+
 
 void Configure_RTC(void);
 void Init_RTC(uint32_t Time);
