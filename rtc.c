@@ -117,6 +117,7 @@ void Init_RTC(uint32_t Time)
   /* (3) Wait until it is allow to modify RTC register values */
   /* (4) set prescaler, 40kHz/64 => 625 Hz, 625Hz/625 => 1Hz */
   /* (5) New time in TR */
+  /* (5a) New date in DR */
   /* (6) Disable init phase */
   /* (7) Disable write access for RTC registers */
   RTC->WPR = 0xCA; /* (1) */ 
@@ -127,6 +128,7 @@ void Init_RTC(uint32_t Time)
     }
   RTC->PRER = 0x003F0270; /* (4) */
   RTC->TR = RTC_TR_PM | Time; /* (5) */
+  RTC->DR = 0x00176301; /* (5a) */
   RTC->ISR &=~ RTC_ISR_INIT; /* (6) */
   RTC->WPR = 0xFE; /* (7) */
   RTC->WPR = 0x64; /* (7) */
