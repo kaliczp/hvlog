@@ -40,6 +40,4 @@ void Configure_GPIO_LED(void)
     | (GPIO_MODER_MODE5_0); /* (2) */
   GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODE6)) 
     | (GPIO_MODER_MODE6_0); /* (3) */
-  /* lit green LED */
-  GPIOA->BSRR = GPIO_BSRR_BS_5; /* (4) */
 }
