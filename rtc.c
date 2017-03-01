@@ -60,10 +60,12 @@ void Configure_RTC(void)
 
   /* Configure RTC */
   /* (7) Write access for RTC regsiters */
-  /* (8) Disable alarm A to modify it */
+  /* (8) Disable alarm A&B to modify it */
   /* (9) Wait until it is allow to modify alarm A value */
+  /* (9a) Wait until it is allow to modify alarm B value */
   /* (10) Modify alarm A mask to have an interrupt each 1/60Hz (1 mins) */
-  /* (11) Enable alarm A and alarm A interrupt */
+  /* (10a) Modify alarm B mask to have an interrupt each 1/60Hz (1 mins)  at 01 sec */
+  /* (11) Enable alarm A&B and alarm A&B interrupt */
   /* (12) Disable write access */
 
   RTC->WPR = 0xCA; /* (7) */
