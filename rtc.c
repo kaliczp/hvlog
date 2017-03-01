@@ -51,9 +51,9 @@ void Configure_RTC(void)
   //  RCC->CSR |= RCC_CSR_LSEDRV_0; /* (3a) */
 
   while((RCC->CSR & RCC_CSR_LSERDY)!=RCC_CSR_LSERDY) /* (4) */
-  { 
-    /* add time out here for a robust application */
-  }
+    { 
+      /* add time out here for a robust application */
+    }
   
   RCC->CSR = (RCC->CSR & ~RCC_CSR_RTCSEL) | RCC_CSR_RTCEN | RCC_CSR_RTCSEL_0; /* (5) */
   RCC->APB1ENR &=~ RCC_APB1ENR_PWREN; /* (6) */
@@ -68,13 +68,18 @@ void Configure_RTC(void)
 
   RTC->WPR = 0xCA; /* (7) */
   RTC->WPR = 0x53; /* (7) */
-  RTC->CR &= ~RTC_CR_ALRAE; /* (8) */
+  RTC->CR &= ~(RTC_CR_ALRAE | RTC_CR_ALRBE); /* (8) */
   while((RTC->ISR & RTC_ISR_ALRAWF) != RTC_ISR_ALRAWF) /* (9) */
-  { 
-    /* add time out here for a robust application */
-  }
+    { 
+      /* add time out here for a robust application */
+    }
+  while((RTC->ISR & RTC_ISR_ALRBWF) != RTC_ISR_ALRBWF) /* (9a) */
+    { 
+      /* add time out here for a robust application */
+    }
   RTC->ALRMAR = RTC_ALRMAR_MSK4 | RTC_ALRMAR_MSK3 | RTC_ALRMAR_MSK2 ; /* (10) */
-  RTC->CR = RTC_CR_ALRAIE | RTC_CR_ALRAE; /* (11) */ 
+  RTC->ALRMBR = RTC_ALRMBR_MSK4 | RTC_ALRMBR_MSK3 | RTC_ALRMBR_MSK2 | RTC_ALRMBR_SU_0 ; /* (10a) */
+  RTC->CR = RTC_CR_ALRAIE | RTC_CR_ALRBIE | RTC_CR_ALRAE | RTC_CR_ALRBE; /* (11) */
   RTC->WPR = 0xFE; /* (12) */
   RTC->WPR = 0x64; /* (12) */
   /* (13) Tamper configuration:
@@ -144,9 +149,16 @@ void RTC_IRQHandler(void)
     {
       RTC->ISR &= ~RTC_ISR_ALRAF; /* clear flag */
       EXTI->PR |= EXTI_PR_PR17; /* clear exti line 17 flag */
-      GPIOA->ODR ^= (1 << 5) ; /* Toggle PA5 */
+      GPIOA->BSRR = GPIO_BSRR_BS_5; /* lit green LED */
       // Alarm = 1;
     }
+  else if((RTC->ISR & (RTC_ISR_ALRBF)) == (RTC_ISR_ALRBF))
+    {
+      RTC->ISR &= ~RTC_ISR_ALRBF; /* clear flag */
+      EXTI->PR |= EXTI_PR_PR17; /* clear exti line 17 flag */
+      GPIOA->BSRR = GPIO_BSRR_BR_5; /* switch off green LED */
+     }
+
   /* Check tamper and timestamp flag */
   else if(((RTC->ISR & (RTC_ISR_TAMP2F)) == (RTC_ISR_TAMP2F)) && ((RTC->ISR & (RTC_ISR_TSF)) == (RTC_ISR_TSF))) 
     {
