@@ -47,9 +47,9 @@ int main(void)
   Init_RTC(0);
   while(1)
     {
-      if(MyStateRegister == 1)
+      if(MyStateRegister == TIMESTAMP_CAPTURED)
 	{
-	  MyStateRegister = 0;
+	  MyStateRegister = NOTHING_TODO;
 	  OldTimestampTime = TimestampTime;
 	  OldTimestampDate = TimestampDate;
 	  GPIOA->ODR ^= (1 << 6); //toggle LED

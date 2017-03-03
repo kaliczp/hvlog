@@ -164,7 +164,7 @@ void RTC_IRQHandler(void)
       RTC->ISR &= ~(RTC_ISR_TSF); /* clear timestamp flag */
       RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
       EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
-      MyStateRegister = 1;
+      MyStateRegister = TIMESTAMP_CAPTURED;
     }
   else
     {
