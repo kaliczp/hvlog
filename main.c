@@ -24,19 +24,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 #include "main.h"
 
-uint32_t OldTimestampTime = 0x00;
-uint32_t OldTimestampDate = 0x00;
+volatile uint32_t MyStateRegister;
+
+/* Timestamp values */
+volatile uint32_t TimestampTime;
+volatile uint32_t TimestampDate;
+
+uint32_t OldTimestampTime;
+uint32_t OldTimestampDate;
 
 int main(void)
 {
+  /* Important variables. Later save to RTC domain and load here */
+  /* Status register to follow state */
+  MyStateRegister = 0;
+  /* Older timestamp values */
+  OldTimestampTime = 0x00;
+  OldTimestampDate = 0x00;
+
   Configure_GPIO_LED();
   Configure_RTC();
   Init_RTC(0);
   while(1)
     {
-      if(SensedTime == 1)
+      if(MyStateRegister == 1)
 	{
-	  SensedTime = 0;
+	  MyStateRegister = 0;
 	  OldTimestampTime = TimestampTime;
 	  OldTimestampDate = TimestampDate;
 	  GPIOA->ODR ^= (1 << 6); //toggle LED

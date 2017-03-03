@@ -24,12 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 #include "rtc.h"
 
-/* Timestamp sensor indicator */
-volatile uint32_t SensedTime = 0;
-/* Timestamp values */
-volatile uint32_t TimestampTime = 0x0;
-volatile uint32_t TimestampDate = 0x0;
-
 /**
    - GPIO clock enable
    - Configures the Push Button GPIO PA0
@@ -170,7 +164,7 @@ void RTC_IRQHandler(void)
       RTC->ISR &= ~(RTC_ISR_TSF); /* clear timestamp flag */
       RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
       EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
-      SensedTime = 1;
+      MyStateRegister = 1;
     }
   else
     {
