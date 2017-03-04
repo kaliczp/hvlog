@@ -35,12 +35,12 @@ uint32_t OldTimestampDate;
 
 int main(void)
 {
-  /* Important variables. Later save to RTC domain and load here */
+  /* Important variables. Loaded from RTC domain */
   /* Status register to follow state */
-  MyStateRegister = 0;
+  MyStateRegister = RTC->BKP0R;
   /* Older timestamp values */
-  OldTimestampTime = 0x00;
-  OldTimestampDate = 0x00;
+  OldTimestampTime = RTC->BKP1R;
+  OldTimestampDate = RTC->BKP2R;
 
   Configure_GPIO_LED();
   Configure_RTC();
@@ -54,6 +54,9 @@ int main(void)
 	  OldTimestampDate = TimestampDate;
 	  GPIOA->ODR ^= (1 << 6); //toggle LED
 	}
+      RTC->BKP0R = MyStateRegister;
+      RTC->BKP1R = OldTimestampTime;
+      RTC->BKP2R = OldTimestampDate;
       /* Go to sleep */
       __WFI();
     }
