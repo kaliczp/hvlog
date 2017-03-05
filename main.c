@@ -42,6 +42,7 @@ int main(void)
   OldTimestampTime = RTC->BKP1R;
   OldTimestampDate = RTC->BKP2R;
 
+  Configure_Lpwr(); // Initialise STOP mode and debug
   Configure_GPIO_LED();
   Configure_RTC();
   Init_RTC(0);

@@ -3,7 +3,7 @@
 * Author    Péter Kalicz
 * Version   V0.1
 * Date      2017-02-11
-* Brief     Sensor with interrupt
+* Brief     Test the behavior of Makefile and programming environment
 
 hvlog -- a simple logger based on STM32L0x1 MCU and an EEPROM
 Copyright (C) 2017 Péter Kalicz
@@ -22,8 +22,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
 
-#include "stm32l0xx.h"
-#include "global.h"
-#include "rtc.h"
-#include "led.h"
 #include "lpwr.h"
+
+void Configure_Lpwr(void)
+{
+  /* Enable the peripheral clock of DBG register */
+  RCC->APB2ENR |= RCC_APB2ENR_DBGMCUEN;
+  
+  DBGMCU->CR |= DBGMCU_CR_DBG_STOP; /* To be able to debug in stop mode */
+  SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; /* To enter deep sleep when __WFI() */
+  PWR->CR &=~ PWR_CR_PDDS; /* Select STOP mode */
+}
