@@ -29,7 +29,10 @@ void Configure_Lpwr(void)
   /* Enable the peripheral clock of DBG register */
   RCC->APB2ENR |= RCC_APB2ENR_DBGMCUEN;
   
-  DBGMCU->CR |= DBGMCU_CR_DBG_STOP; /* To be able to debug in stop mode */
+  //  DBGMCU->CR |= DBGMCU_CR_DBG_STOP; /* To be able to debug in stop mode */
+  DBGMCU->CR |= DBGMCU_CR_DBG_STANDBY; /* To be able to debug in standby mode */
+
   SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; /* To enter deep sleep when __WFI() */
-  PWR->CR &=~ PWR_CR_PDDS; /* Select STOP mode */
+  //  PWR->CR &=~ PWR_CR_PDDS; /* Select STOP mode */
+  PWR->CR |= PWR_CR_PDDS; /* Select Standby mode */
 }

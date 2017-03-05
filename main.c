@@ -35,6 +35,12 @@ uint32_t OldTimestampDate;
 
 int main(void)
 {
+  /* If RTC is not set configure and initialise */
+  if((RTC->ISR & RTC_ISR_INITS) == 0)
+    {
+      Configure_RTC();
+      Init_RTC(0);
+    }
   /* Important variables. Loaded from RTC domain */
   /* Status register to follow state */
   MyStateRegister = RTC->BKP0R;
@@ -44,8 +50,6 @@ int main(void)
 
   Configure_Lpwr(); // Initialise STOP mode and debug
   Configure_GPIO_LED();
-  Configure_RTC();
-  Init_RTC(0);
   while(1)
     {
       if(MyStateRegister == TIMESTAMP_CAPTURED)
