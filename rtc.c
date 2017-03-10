@@ -25,9 +25,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 #include "rtc.h"
 
 /**
-   - GPIO clock enable
-   - Configures the Push Button GPIO PA0
+   - RTC register access enable
 */
+void Enable_RTC_registers(void)
+{
+/* (1) Enable power interface in the RCC_APB1ENR register. */
+/* (2) Set the DBP bit in the PWR_CR register (see RM Section 6.4.1). */
+/* (3) Disable power interface. */
+  RCC->APB1ENR |= RCC_APB1ENR_PWREN; /* (1) */
+  PWR->CR |= PWR_CR_DBP; /* (2) */
+  RCC->APB1ENR &=~ RCC_APB1ENR_PWREN; /* (6) */
+}
+
 void Configure_RTC(void)
 {
   /* (1) Enable PWR clock the peripheral clock RTC */
@@ -54,28 +63,21 @@ void Configure_RTC(void)
 
   /* Configure RTC */
   /* (7) Write access for RTC regsiters */
-  /* (8) Disable alarm A&B to modify it */
+  /* (8) Disable alarm A to modify it */
   /* (9) Wait until it is allow to modify alarm A value */
-  /* (9a) Wait until it is allow to modify alarm B value */
-  /* (10) Modify alarm A mask to have an interrupt each 1/60Hz (1 mins) */
-  /* (10a) Modify alarm B mask to have an interrupt each 1/60Hz (1 mins)  at 01 sec */
-  /* (11) Enable alarm A&B and alarm A&B interrupt */
+  /* (10) Modify alarm A mask to have an interrupt each 1/60Hz (1 days) */
+  /* (11) Enable alarm A and alarm A interrupt */
   /* (12) Disable write access */
 
   RTC->WPR = 0xCA; /* (7) */
   RTC->WPR = 0x53; /* (7) */
-  RTC->CR &= ~(RTC_CR_ALRAE | RTC_CR_ALRBE); /* (8) */
+  RTC->CR &= ~(RTC_CR_ALRAE); /* (8) */
   while((RTC->ISR & RTC_ISR_ALRAWF) != RTC_ISR_ALRAWF) /* (9) */
     { 
       /* add time out here for a robust application */
     }
-  while((RTC->ISR & RTC_ISR_ALRBWF) != RTC_ISR_ALRBWF) /* (9a) */
-    { 
-      /* add time out here for a robust application */
-    }
-  RTC->ALRMAR = RTC_ALRMAR_MSK4 | RTC_ALRMAR_MSK3 | RTC_ALRMAR_MSK2 ; /* (10) */
-  RTC->ALRMBR = RTC_ALRMBR_MSK4 | RTC_ALRMBR_MSK3 | RTC_ALRMBR_MSK2 | RTC_ALRMBR_SU_0 ; /* (10a) */
-  RTC->CR = RTC_CR_ALRAIE | RTC_CR_ALRBIE | RTC_CR_ALRAE | RTC_CR_ALRBE; /* (11) */
+  RTC->ALRMAR = RTC_ALRMAR_MSK4; /* (10) */
+  RTC->CR = RTC_CR_ALRAIE | RTC_CR_ALRAE; /* (11) */
   RTC->WPR = 0xFE; /* (12) */
   RTC->WPR = 0x64; /* (12) */
   /* (13) Tamper configuration:
@@ -128,8 +130,8 @@ void Init_RTC(uint32_t Time)
     { 
     }
   RTC->PRER = 0x003F0270; /* (4) */
-  RTC->TR = RTC_TR_PM | Time; /* (5) */
-  RTC->DR = 0x00176301; /* (5a) */
+  RTC->TR = Time; /* (5) */
+  RTC->DR = 0x00176310; /* (5a) */
   RTC->ISR &=~ RTC_ISR_INIT; /* (6) */
   RTC->WPR = 0xFE; /* (7) */
   RTC->WPR = 0x64; /* (7) */
@@ -145,16 +147,8 @@ void RTC_IRQHandler(void)
     {
       RTC->ISR &= ~RTC_ISR_ALRAF; /* clear flag */
       EXTI->PR |= EXTI_PR_PR17; /* clear exti line 17 flag */
-      GPIOA->BSRR = GPIO_BSRR_BS_5; /* lit green LED */
       // Alarm = 1;
     }
-  else if((RTC->ISR & (RTC_ISR_ALRBF)) == (RTC_ISR_ALRBF))
-    {
-      RTC->ISR &= ~RTC_ISR_ALRBF; /* clear flag */
-      EXTI->PR |= EXTI_PR_PR17; /* clear exti line 17 flag */
-      GPIOA->BSRR = GPIO_BSRR_BR_5; /* switch off green LED */
-     }
-
   /* Check tamper and timestamp flag */
   else if(((RTC->ISR & (RTC_ISR_TAMP2F)) == (RTC_ISR_TAMP2F)) && ((RTC->ISR & (RTC_ISR_TSF)) == (RTC_ISR_TSF))) 
     {
