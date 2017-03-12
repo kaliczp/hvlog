@@ -48,10 +48,14 @@ int main(void)
     }
   else
     {
-      Configure_RTC();
-      Init_RTC(0);
+      Configure_RTC_Clock();
     }
   RCC->APB1ENR &=~ RCC_APB1ENR_PWREN; // Disable PWR
+  if(FromLowPower == 0)
+    {
+      Configure_RTC_Func();
+      Init_RTC(0x00224100, 0x00170312);
+    }
   /* Important variables. Loaded from RTC domain */
   /* Status register to follow state */
   MyStateRegister = RTC->BKP0R;

@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 #include "global.h"
 
 void Enable_RTC_registers(void);
-void Configure_RTC(void);
-void Init_RTC(uint32_t Time);
+void Configure_RTC_Clock(void);
+void Configure_RTC_Func(void);
+void Init_RTC(uint32_t Time, uint32_t Date);
 void RTC_IRQHandler(void);
