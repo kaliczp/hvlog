@@ -33,19 +33,25 @@ volatile uint32_t TimestampDate;
 uint32_t OldTimestampTime;
 uint32_t OldTimestampDate;
 
+uint8_t FromLowPower;
+
 int main(void)
 {
-  Configure_Lpwr(); // Initialise STOP mode and debug
+  FromLowPower = 0;
+  RCC->APB1ENR |= RCC_APB1ENR_PWREN; // Enable PWR
+  Enable_RTC_registers();
   /* If RTC is not set configure and initialise */
   if((PWR->CSR & PWR_CSR_WUF) == 1)
     {
-      Enable_RTC_registers();
+      PWR->CR |= PWR_CR_CWUF;
+      FromLowPower = 1;
     }
   else
     {
       Configure_RTC();
       Init_RTC(0);
     }
+  RCC->APB1ENR &=~ RCC_APB1ENR_PWREN; // Disable PWR
   /* Important variables. Loaded from RTC domain */
   /* Status register to follow state */
   MyStateRegister = RTC->BKP0R;
@@ -60,12 +66,17 @@ int main(void)
 	  MyStateRegister = NOTHING_TODO;
 	  OldTimestampTime = TimestampTime;
 	  OldTimestampDate = TimestampDate;
-	  GPIOA->ODR ^= (1 << 6); //toggle LED
+	  RTC->BKP1R = OldTimestampTime;
+	  RTC->BKP2R = OldTimestampDate;
 	}
       RTC->BKP0R = MyStateRegister;
-      RTC->BKP1R = OldTimestampTime;
-      RTC->BKP2R = OldTimestampDate;
       /* Go to sleep */
+      if(MyStateRegister == NOTHING_TODO)
+	{
+	  RCC->APB1ENR |= RCC_APB1ENR_PWREN; // Enable PWR
+	  Configure_Lpwr(); // Initialise STOP mode and debug
+	  RCC->APB1ENR &=~ RCC_APB1ENR_PWREN; // Disable PWR
+	}
       __WFI();
     }
 }
