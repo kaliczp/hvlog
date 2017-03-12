@@ -4,6 +4,7 @@
 /* Define states for MyStateRegister */
 #define NOTHING_TODO          0x0
 #define TIMESTAMP_CAPTURED    0x1
+#define DAILY_ALARM           0x2
 
 #endif /* MACROS_DEFINED */
 

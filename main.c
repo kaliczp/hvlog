@@ -57,26 +57,35 @@ int main(void)
       Init_RTC(0x00224100, 0x00170312);
     }
   /* Important variables. Loaded from RTC domain */
-  /* Status register to follow state */
-  MyStateRegister = RTC->BKP0R;
   /* Older timestamp values */
   OldTimestampTime = RTC->BKP1R;
   OldTimestampDate = RTC->BKP2R;
 
   while(1)
     {
-      if(MyStateRegister == TIMESTAMP_CAPTURED)
+      if(MyStateRegister > 0)
 	{
-	  MyStateRegister = NOTHING_TODO;
-	  OldTimestampTime = TimestampTime;
-	  OldTimestampDate = TimestampDate;
-	  RTC->BKP1R = OldTimestampTime;
-	  RTC->BKP2R = OldTimestampDate;
+	  if((MyStateRegister & (TIMESTAMP_CAPTURED)) == (TIMESTAMP_CAPTURED))
+	    {
+	      MyStateRegister &= ~TIMESTAMP_CAPTURED;
+	      OldTimestampTime = TimestampTime;
+	      OldTimestampDate = TimestampDate;
+	      RTC->BKP1R = OldTimestampTime;
+	      RTC->BKP2R = OldTimestampDate;
+	    }
+	  else if((MyStateRegister & (DAILY_ALARM)) == (DAILY_ALARM))
+	    {
+	      MyStateRegister &= ~DAILY_ALARM;
+	      // Write internal EEPROM with SPI EEPROM pointer and date
+	    }
+	  else
+	    {
+	      MyStateRegister = NOTHING_TODO;
+	    }
 	}
-      RTC->BKP0R = MyStateRegister;
-      /* Go to sleep */
-      if(MyStateRegister == NOTHING_TODO)
+      else
 	{
+	  /* Go to deeper sleep */
 	  RCC->APB1ENR |= RCC_APB1ENR_PWREN; // Enable PWR
 	  Configure_Lpwr(); // Initialise STOP mode and debug
 	  RCC->APB1ENR &=~ RCC_APB1ENR_PWREN; // Disable PWR
