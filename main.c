@@ -88,7 +88,6 @@ int main(void)
 	  /* Go to deeper sleep */
 	  RCC->APB1ENR |= RCC_APB1ENR_PWREN; // Enable PWR
 	  Configure_Lpwr(); // Initialise STOP mode and debug
-	  RCC->APB1ENR &=~ RCC_APB1ENR_PWREN; // Disable PWR
 	}
       __WFI();
     }
