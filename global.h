@@ -1,9 +1,14 @@
+/* Define time and date if not defined in command line*/
+#ifndef CURR_TIM
+#define CURR_TIM         0x00212000
+#endif
+
+#ifndef CURR_DAT
+#define CURR_DAT         0x00170315
+#endif
+
 #ifndef MACROS_DEFINED
 #define MACROS_DEFINED
-
-/* Time and date */
-#define CURR_TIM         0x00212000
-#define CURR_DAT         0x00170315
 
 /* Define states for MyStateRegister */
 #define NOTHING_TODO          0x0

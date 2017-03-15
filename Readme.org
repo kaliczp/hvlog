@@ -1,0 +1,9 @@
+#+TITLE: hvlog
+#+AUTHOR: Kalicz Péter
+
+* Compile
+
+Compile with low power debug and actual time and date.
+#+BEGIN_SRC sh
+make UDEFS=-DDEBUG UDEFS+=-DCURR_TIM=0x00220630 UDEFS+=-DCURR_DAT=0x00170315
+#+END_SRC
