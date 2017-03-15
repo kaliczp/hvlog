@@ -1,6 +1,10 @@
 #ifndef MACROS_DEFINED
 #define MACROS_DEFINED
 
+/* Time and date */
+#define CURR_TIM         0x00212000
+#define CURR_DAT         0x00170315
+
 /* Define states for MyStateRegister */
 #define NOTHING_TODO          0x0
 #define TIMESTAMP_CAPTURED    0x1

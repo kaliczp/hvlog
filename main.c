@@ -55,7 +55,7 @@ int main(void)
   if(FromLowPower == 0)
     {
       Configure_RTC_Func();
-      Init_RTC(0x00224100, 0x00170312);
+      Init_RTC(CURR_TIM, CURR_DAT);
     }
   /* Important variables. Loaded from RTC domain */
   /* Older timestamp values */
