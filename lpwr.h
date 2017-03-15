@@ -25,4 +25,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 #include "stm32l0xx.h"
 #include "global.h"
 
-void Configure_Lpwr(void);
+void Configure_Lpwr(uint8_t LpwrMode);

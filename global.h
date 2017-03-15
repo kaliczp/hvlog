@@ -6,6 +6,9 @@
 #define TIMESTAMP_CAPTURED    0x1
 #define DAILY_ALARM           0x2
 
+/* Lowpower mode macros */
+#define ModeSTOP              0x1
+#define ModeStandby           0x2
 #endif /* MACROS_DEFINED */
 
 /* Status register to follow state */

@@ -24,24 +24,50 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 #include "lpwr.h"
 
-void Configure_Lpwr(void)
+void Configure_Lpwr(uint8_t LpwrMode)
 {
+  if(LpwrMode > 0)
+    {
 #ifdef DEBUG
-  /* Enable the peripheral clock of DBG register */
-  RCC->APB2ENR |= RCC_APB2ENR_DBGMCUEN;
-  
-  DBGMCU->CR |= DBGMCU_CR_DBG_STOP; /* To be able to debug in stop mode */
-  //  DBGMCU->CR |= DBGMCU_CR_DBG_STANDBY; /* To be able to debug in standby mode */
+      /* Enable the peripheral clock of DBG register */
+      RCC->APB2ENR |= RCC_APB2ENR_DBGMCUEN;
+      if(LpwrMode == ModeSTOP)
+	{
+	  /* To be able to debug in stop mode */
+	  DBGMCU->CR |= DBGMCU_CR_DBG_STOP;
+	}
+      else
+	{
+	  /* To be able to debug in standby mode */
+	  DBGMCU->CR |= DBGMCU_CR_DBG_STANDBY;
+	}
 #endif
-
-  /* (1)  Clear the WUF flag after 2 clock cycles */
-  /* (2) Regulator in LowPower mode and disable VREFINT and enable fast wake-up */
-  /* (3a) Select STOP mode in the PWR_CR register */
-  /* (3b) Select Standby mode in the PWR_CR register */
-  /* (4) Enter deep sleep when __WFI() */
-  PWR->CR |= PWR_CR_CWUF; /* (1) */
-  PWR->CR |= (PWR_CR_LPSDSR | PWR_CR_ULP | PWR_CR_FWU); /* (2) */
-  PWR->CR &= ~ (PWR_CR_PDDS); /* (3a) */
-  //  PWR->CR |= PWR_CR_PDDS;  /* (3b) */
-  SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; /* (4) */
+      /* (0) Enable power module */
+      /* (1)  Clear the WUF flag after 2 clock cycles */
+      /* (2) Regulator in LowPower mode and disable VREFINT and enable fast wake-up */
+      /* (3a) Select STOP mode in the PWR_CR register */
+      /* (3b) Select Standby mode in the PWR_CR register */
+      /* (4) Enter deep sleep when __WFI() */
+      /* (5) WFI */
+      /* (6) Clear deep sleep after wake up */
+      RCC->APB1ENR |= RCC_APB1ENR_PWREN; /* (0) */
+      PWR->CR |= PWR_CR_CWUF; /* (1) */
+      if(LpwrMode == ModeSTOP)
+	{
+	  PWR->CR |= (PWR_CR_LPSDSR | PWR_CR_ULP | PWR_CR_FWU); /* (2) */
+	  PWR->CR &= ~ (PWR_CR_PDDS); /* (3a) */
+	}
+      else
+	{
+	  PWR->CR |= PWR_CR_CSBF; /* (1) */
+	  PWR->CR |= (PWR_CR_ULP | PWR_CR_FWU); /* (2) */
+	  PWR->CR |= PWR_CR_PDDS;  /* (3b) */
+	}
+      SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; /* (4) */
+      __WFI(); /* (5) */
+    }
+  else
+    {
+      __WFI();
+    }
 }
