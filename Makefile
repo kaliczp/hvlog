@@ -23,6 +23,8 @@ OBJCOPY	= $(PREFIX)-objcopy
 
 ## Define correct mcu for header file selection an inline
 DEFS	= -D$(MCU_UC)
+## Possible command line user macro definition by UDEFS
+## eg. make UDEFS=-DDEBUG
 
 ## Options compiler. -g flag for gdb.
 ## -Os flag for optimalisation for size
@@ -53,7 +55,7 @@ $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary $(TARGET).elf $(TARGET).bin
 
 $(TARGET).elf: startup_$(MCU_LC).s $(OBJS) 
-	$(CC) $(DEFS) $(CFLAGS) $(INCS) $(LDFLAGS) $^ -o $@
+	$(CC) $(UDEFS) $(DEFS) $(CFLAGS) $(INCS) $(LDFLAGS) $^ -o $@
 
 ## Copy system files
 template:

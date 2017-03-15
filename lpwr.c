@@ -26,11 +26,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 void Configure_Lpwr(void)
 {
+#ifdef DEBUG
   /* Enable the peripheral clock of DBG register */
   RCC->APB2ENR |= RCC_APB2ENR_DBGMCUEN;
   
   DBGMCU->CR |= DBGMCU_CR_DBG_STOP; /* To be able to debug in stop mode */
   //  DBGMCU->CR |= DBGMCU_CR_DBG_STANDBY; /* To be able to debug in standby mode */
+#endif
 
   /* (1)  Clear the WUF flag after 2 clock cycles */
   /* (2) Regulator in LowPower mode and disable VREFINT and enable fast wake-up */
