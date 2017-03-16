@@ -3,7 +3,7 @@
 * Author    Péter Kalicz
 * Version   V0.1
 * Date      2017-02-11
-* Brief     SPI header
+* Brief     LowPower Timer header
 
 hvlog -- a simple logger based on STM32L0x1 MCU and an EEPROM
 Copyright (C) 2017 Péter Kalicz
@@ -23,13 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
 
 #include "stm32l0xx.h"
-#include "global.h"
-#include "lptim.h"
 
-void Configure_GPIO_SPI1(void);
-void Deconfigure_GPIO_SPI1(void);
-void Configure_SPI1(void);
-void Activate_SPI1(void);
-void Deactivate_SPI1(void);
-void Deconfigure_SPI1(void);
-void Write_SPI(uint8_t toeeprom[TO_EPR_LENGTH], uint8_t length);
+void ConfigureLPTIM1(void);
+void DeconfigureLPTIM1(void);
+void LPTIM1_IRQHandler(void);

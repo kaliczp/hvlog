@@ -88,6 +88,12 @@ int main(void)
 	      // Save data to SPIEEPROM
 	      ToEEPROM[0] = WREN;
 	      Write_SPI(ToEEPROM, 1);
+	      ConfigureLPTIM1();
+	      __WFI();
+	      DeconfigureLPTIM1();
+	      ToEEPROM[0] = WRITE;
+	      Write_SPI(ToEEPROM, 7);
+	      ToEEPROM[2]++;
 	    }
 	  else
 	    {
