@@ -72,10 +72,10 @@ void Configure_SPI1(void)
   RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
 
   /* Configure SPI1 in master */
-  /* (1) Master selection, BR: Fpclk/256 (due to C13 on the board, SPI_CLK is set to the minimum)
+  /* (1) Master selection, BR: Fpclk/4
          CPOL and CPHA at zero (rising first edge), 8-bit data frame, NSS output enable (SSM=0,SSOE = 1). */
   /* (2) Slave select output enabled, RXNE IT */
-  SPI1->CR1 = SPI_CR1_MSTR | SPI_CR1_BR; /* (1) */
+  SPI1->CR1 = SPI_CR1_MSTR | SPI_CR1_BR_0; /* (1) */
   /* SPI1->CR2 = SPI_CR2_SSOE | SPI_CR2_RXNEIE; /\* (2) *\/ */
   SPI1->CR2 = SPI_CR2_SSOE; /* (2) */
 }

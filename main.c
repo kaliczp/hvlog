@@ -35,7 +35,7 @@ uint32_t OldTimestampDate;
 
 uint8_t FromLowPower;
 
-uint8_t ToEEPROM[TO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x17, 0x03, 0x15}; 
+uint8_t ToEEPROM[TO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x17, 0x03, 0x15};
 
 int main(void)
 {
@@ -73,6 +73,9 @@ int main(void)
 	      MyStateRegister &= ~TIMESTAMP_CAPTURED;
 	      OldTimestampTime = TimestampTime;
 	      OldTimestampDate = TimestampDate;
+	      ToEEPROM[4] = (TimestampTime >> 16) & 0xFF;
+	      ToEEPROM[5] = (TimestampTime >> 8) & 0xFF;
+	      ToEEPROM[6] = TimestampTime & 0xFF;
 	      RTC->BKP1R = OldTimestampTime;
 	      RTC->BKP2R = OldTimestampDate;
 	      MyStateRegister |= SPI_SAVEROM;
@@ -88,12 +91,18 @@ int main(void)
 	      // Save data to SPIEEPROM
 	      ToEEPROM[0] = WREN;
 	      Write_SPI(ToEEPROM, 1);
-	      ConfigureLPTIM1();
-	      __WFI();
-	      DeconfigureLPTIM1();
 	      ToEEPROM[0] = WRITE;
 	      Write_SPI(ToEEPROM, 7);
 	      ToEEPROM[2]++;
+	      // Status Reg
+	      ToEEPROM[0] = RDSR;
+	      Write_SPI(ToEEPROM, 2);
+	      ConfigureLPTIM1();
+	      __WFI();
+	      DeconfigureLPTIM1();
+	      // Status Reg
+	      ToEEPROM[0] = RDSR;
+	      Write_SPI(ToEEPROM, 2);
 	    }
 	  else
 	    {

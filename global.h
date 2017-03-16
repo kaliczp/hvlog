@@ -17,10 +17,11 @@
 #define SPI_SAVEROM           0x4
 
 /* SPI Macros */
-#define WREN             0b00000110 /* Write enable */
-#define WRDI             0b00000100 /* Write disable */
+#define WREN             0b00000110 /* 0x06 Write enable */
+#define WRDI             0b00000100 /* 0x04 Write disable */
+#define RDSR             0b00000101 /* 0x05 Read Status Register */
 #define WRITE            0b00000010 /* 0x02 */
-#define READ             0b00000011
+#define READ             0b00000011 /* 0x03 */
 #define TO_EPR_LENGTH    7
 
 /* Lowpower mode macros */
