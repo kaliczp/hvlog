@@ -35,6 +35,8 @@ uint32_t OldTimestampDate;
 
 uint8_t FromLowPower;
 
+uint8_t ToEEPROM[TO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x17, 0x03, 0x15}; 
+
 int main(void)
 {
   FromLowPower = 0;
@@ -73,11 +75,19 @@ int main(void)
 	      OldTimestampDate = TimestampDate;
 	      RTC->BKP1R = OldTimestampTime;
 	      RTC->BKP2R = OldTimestampDate;
+	      MyStateRegister |= SPI_SAVEROM;
 	    }
 	  else if((MyStateRegister & (DAILY_ALARM)) == (DAILY_ALARM))
 	    {
 	      MyStateRegister &= ~DAILY_ALARM;
 	      // Write internal EEPROM with SPI EEPROM pointer and date
+	    }
+	  else if((MyStateRegister & (SPI_SAVEROM)) == (SPI_SAVEROM))
+	    {
+	      MyStateRegister &= ~SPI_SAVEROM;
+	      // Save data to SPIEEPROM
+	      ToEEPROM[0] = WREN;
+	      Write_SPI(ToEEPROM, 1);
 	    }
 	  else
 	    {

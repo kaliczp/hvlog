@@ -14,6 +14,14 @@
 #define NOTHING_TODO          0x0
 #define TIMESTAMP_CAPTURED    0x1
 #define DAILY_ALARM           0x2
+#define SPI_SAVEROM           0x4
+
+/* SPI Macros */
+#define WREN             0b00000110 /* Write enable */
+#define WRDI             0b00000100 /* Write disable */
+#define WRITE            0b00000010 /* 0x02 */
+#define READ             0b00000011
+#define TO_EPR_LENGTH    7
 
 /* Lowpower mode macros */
 #define ModeSTOP              0x1
