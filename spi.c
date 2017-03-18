@@ -105,9 +105,8 @@ void Deconfigure_SPI1(void)
   RCC->APB2ENR &= ~RCC_APB2ENR_SPI1EN;
 }
 
-void Write_SPI(uint8_t toeeprom[TO_EPR_LENGTH], uint8_t length)
+void Write_SPI(uint8_t *buff, uint8_t length)
 {
-  uint8_t CharReceived[TO_EPR_LENGTH];
   Configure_GPIO_SPI1();
   Configure_SPI1();
   Activate_SPI1();
@@ -118,11 +117,11 @@ void Write_SPI(uint8_t toeeprom[TO_EPR_LENGTH], uint8_t length)
       while((SPI1->SR & SPI_SR_TXE) != SPI_SR_TXE)
 	{
 	}
-      *(uint8_t *)&(SPI1->DR) = toeeprom[i];
+      *(uint8_t *)&(SPI1->DR) = buff[i];
       while((SPI1->SR & SPI_SR_RXNE) != SPI_SR_RXNE)
 	{
 	}
-      CharReceived[i] = SPI1->DR;
+      buff[i] = SPI1->DR;
     }
   while((SPI1->SR & SPI_SR_TXE) != SPI_SR_TXE)
     {

@@ -30,6 +30,7 @@ volatile uint32_t MyStateRegister;
 volatile uint32_t TimestampTime;
 volatile uint32_t TimestampDate;
 
+uint32_t SPIEEPROMaddr;
 uint32_t OldTimestampTime;
 uint32_t OldTimestampDate;
 
@@ -60,6 +61,7 @@ int main(void)
       Init_RTC(CURR_TIM, CURR_DAT);
     }
   /* Important variables. Loaded from RTC domain */
+  SPIEEPROMaddr =  RTC->BKP0R;
   /* Older timestamp values */
   OldTimestampTime = RTC->BKP1R;
   OldTimestampDate = RTC->BKP2R;
@@ -84,18 +86,33 @@ int main(void)
 	  else if((MyStateRegister & (SPI_SAVEROM)) == (SPI_SAVEROM))
 	    {
 	      MyStateRegister &= ~SPI_SAVEROM;
+	      // Read Status Reg
+	      ToEEPROM[0] = RDSR;
+	      Write_SPI(ToEEPROM, 2);
+	      if(ToEEPROM[1] > 0)
+		{
+		  ConfigureLPTIM1(99);
+		  __WFI();
+		  DeconfigureLPTIM1();
+		  ToEEPROM[0] = RDSR;
+		  Write_SPI(ToEEPROM, 2);
+		  if(ToEEPROM[1] > 0)
+		    {
+		      ConfigureLPTIM1(10);
+		      __WFI();
+		      DeconfigureLPTIM1();
+		      ToEEPROM[0] = RDSR;
+		      Write_SPI(ToEEPROM, 2);
+		    }
+		}
 	      // Save data to SPIEEPROM
 	      ToEEPROM[0] = WREN;
 	      Write_SPI(ToEEPROM, 1);
 	      ToEEPROM[0] = WRITE;
+	      ToEEPROM[2] = SPIEEPROMaddr & 0xFF;
 	      Write_SPI(ToEEPROM, 7);
-	      ToEEPROM[2]++;
-	      ConfigureLPTIM1(99);
-	      __WFI();
-	      DeconfigureLPTIM1();
-	      // Status Reg
-	      ToEEPROM[0] = RDSR;
-	      Write_SPI(ToEEPROM, 2);
+	      SPIEEPROMaddr += 4;
+	      RTC->BKP0R = SPIEEPROMaddr;
 	    }
 	  else if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
 	    {
