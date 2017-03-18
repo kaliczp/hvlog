@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 #include "lptim.h"
 
-void ConfigureLPTIM1(void)
+void ConfigureLPTIM1(uint32_t ValueARR)
 {
   /* (1a) Select clocksource for LPTimer1  RM0377 205p*/
   /* (1b) Enable the peripheral clock of LPTimer1 RM0377 198p*/
@@ -40,7 +40,7 @@ void ConfigureLPTIM1(void)
          with 32kHz means almost 5ms */
   LPTIM1->IER |= LPTIM_IER_ARRMIE; /* (2) */
   LPTIM1->CR |= LPTIM_CR_ENABLE; /* (3) */
-  LPTIM1->ARR = 163; /* (4) */
+  LPTIM1->ARR = ValueARR; /* (4) */
   LPTIM1->CR |= LPTIM_CR_SNGSTRT; /* start the counter in single */
 
   /* Configure EXTI and NVIC for LPTIM1 */

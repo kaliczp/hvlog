@@ -97,7 +97,7 @@ int main(void)
 	      // Status Reg
 	      ToEEPROM[0] = RDSR;
 	      Write_SPI(ToEEPROM, 2);
-	      ConfigureLPTIM1();
+	      ConfigureLPTIM1(98);
 	      __WFI();
 	      DeconfigureLPTIM1();
 	      // Status Reg
