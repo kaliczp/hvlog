@@ -71,19 +71,15 @@ int main(void)
 	  if((MyStateRegister & (TIMESTAMP_CAPTURED)) == (TIMESTAMP_CAPTURED))
 	    {
 	      MyStateRegister &= ~TIMESTAMP_CAPTURED;
+	      if(OldTimestampDate < TimestampDate)
+		{
+		  MyStateRegister |= STORE_TIMESTAMP_DAT;
+		}
+	      MyStateRegister |= STORE_TIMESTAMP_TIM;
 	      OldTimestampTime = TimestampTime;
 	      OldTimestampDate = TimestampDate;
-	      ToEEPROM[4] = (TimestampTime >> 16) & 0xFF;
-	      ToEEPROM[5] = (TimestampTime >> 8) & 0xFF;
-	      ToEEPROM[6] = TimestampTime & 0xFF;
 	      RTC->BKP1R = OldTimestampTime;
 	      RTC->BKP2R = OldTimestampDate;
-	      MyStateRegister |= SPI_SAVEROM;
-	    }
-	  else if((MyStateRegister & (DAILY_ALARM)) == (DAILY_ALARM))
-	    {
-	      MyStateRegister &= ~DAILY_ALARM;
-	      // Write internal EEPROM with SPI EEPROM pointer and date
 	    }
 	  else if((MyStateRegister & (SPI_SAVEROM)) == (SPI_SAVEROM))
 	    {
@@ -94,15 +90,34 @@ int main(void)
 	      ToEEPROM[0] = WRITE;
 	      Write_SPI(ToEEPROM, 7);
 	      ToEEPROM[2]++;
-	      // Status Reg
-	      ToEEPROM[0] = RDSR;
-	      Write_SPI(ToEEPROM, 2);
-	      ConfigureLPTIM1(98);
+	      ConfigureLPTIM1(99);
 	      __WFI();
 	      DeconfigureLPTIM1();
 	      // Status Reg
 	      ToEEPROM[0] = RDSR;
 	      Write_SPI(ToEEPROM, 2);
+	    }
+	  else if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
+	    {
+	      MyStateRegister &= ~STORE_TIMESTAMP_DAT;
+	      ToEEPROM[4] = (TimestampDate >> 16) & 0xFF;
+	      ToEEPROM[5] = (TimestampDate >> 8) & 0xFF;
+	      ToEEPROM[6] = TimestampDate & 0xFF;
+	      MyStateRegister |= SPI_SAVEROM;
+	    }
+
+	  else if((MyStateRegister & (STORE_TIMESTAMP_TIM)) == (STORE_TIMESTAMP_TIM))
+	    {
+	      MyStateRegister &= ~STORE_TIMESTAMP_TIM;
+	      ToEEPROM[4] = (TimestampTime >> 16) & 0xFF;
+	      ToEEPROM[5] = (TimestampTime >> 8) & 0xFF;
+	      ToEEPROM[6] = TimestampTime & 0xFF;
+	      MyStateRegister |= SPI_SAVEROM;
+	    }
+	  else if((MyStateRegister & (DAILY_ALARM)) == (DAILY_ALARM))
+	    {
+	      MyStateRegister &= ~DAILY_ALARM;
+	      // Write internal EEPROM with SPI EEPROM pointer and date
 	    }
 	  else
 	    {
