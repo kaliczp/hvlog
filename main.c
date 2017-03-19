@@ -30,7 +30,9 @@ volatile uint32_t MyStateRegister;
 volatile uint32_t TimestampTime;
 volatile uint32_t TimestampDate;
 
-uint32_t SPIEEPROMaddr;
+uint16_t SPIEEPROMaddr;
+uint16_t LastReadSPIEEPROMaddr;
+uint16_t ReadSPIEEPROMaddr;
 uint32_t OldTimestampTime;
 uint32_t OldTimestampDate;
 
@@ -61,7 +63,8 @@ int main(void)
       Init_RTC(CURR_TIM, CURR_DAT);
     }
   /* Important variables. Loaded from RTC domain */
-  SPIEEPROMaddr =  RTC->BKP0R;
+  SPIEEPROMaddr =  RTC->BKP0R & 0xFFFF;
+  LastReadSPIEEPROMaddr =  (RTC->BKP0R >> 16) & 0xFFFF;
   /* Older timestamp values */
   OldTimestampTime = RTC->BKP1R;
   OldTimestampDate = RTC->BKP2R;
@@ -73,6 +76,17 @@ int main(void)
 	  if((MyStateRegister & (TIMESTAMP_CAPTURED)) == (TIMESTAMP_CAPTURED))
 	    {
 	      MyStateRegister &= ~TIMESTAMP_CAPTURED;
+	      /* Test UART */
+	      Configure_GPIOB_Test();
+	      if((GPIOB->IDR & (GPIO_IDR_ID7)) == (GPIO_IDR_ID7))
+		{
+		  MyStateRegister |= SPI_READROM;
+		}
+	      else
+		{
+		  Deconfigure_GPIOB_Test();
+		  MyStateRegister &= ~ (SPI_READROM);
+		}
 	      if(OldTimestampDate < TimestampDate)
 		{
 		  MyStateRegister |= STORE_TIMESTAMP_DAT;
@@ -117,6 +131,14 @@ int main(void)
 	  else if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
 	    {
 	      MyStateRegister &= ~STORE_TIMESTAMP_DAT;
+	      if((MyStateRegister & (SPI_READROM)) == (SPI_READROM))
+		{
+		  ToEEPROM[3] = 0xC0; // Data flag & during read
+		}
+	      else
+		{
+		  ToEEPROM[3] = 0x40; // Date flag
+		}
 	      ToEEPROM[4] = (TimestampDate >> 16) & 0xFF;
 	      ToEEPROM[5] = (TimestampDate >> 8) & 0xFF;
 	      ToEEPROM[6] = TimestampDate & 0xFF;
@@ -126,10 +148,32 @@ int main(void)
 	  else if((MyStateRegister & (STORE_TIMESTAMP_TIM)) == (STORE_TIMESTAMP_TIM))
 	    {
 	      MyStateRegister &= ~STORE_TIMESTAMP_TIM;
+	      if((MyStateRegister & (SPI_READROM)) == (SPI_READROM))
+		{
+		  ToEEPROM[3] = 0x80; // Time flag & during read
+		}
+	      else
+		{
+		  ToEEPROM[3] = 0x0; // Time flag
+		}
 	      ToEEPROM[4] = (TimestampTime >> 16) & 0xFF;
 	      ToEEPROM[5] = (TimestampTime >> 8) & 0xFF;
 	      ToEEPROM[6] = TimestampTime & 0xFF;
 	      MyStateRegister |= SPI_SAVEROM;
+	    }
+	  else if((MyStateRegister & (SPI_READROM)) == (SPI_READROM))
+	    {
+	      ReadSPIEEPROMaddr = LastReadSPIEEPROMaddr;
+	      while( ReadSPIEEPROMaddr < SPIEEPROMaddr)
+		{
+		  ToEEPROM[0] = READ;
+		  ToEEPROM[1] = (ReadSPIEEPROMaddr >> 8) & 0xFF;
+		  ToEEPROM[2] = ReadSPIEEPROMaddr & 0xFF;
+		  Write_SPI(ToEEPROM, 7);
+		  ReadSPIEEPROMaddr += 4;
+		}
+	      LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr;
+	      MyStateRegister &= ~SPI_READROM;
 	    }
 	  else if((MyStateRegister & (DAILY_ALARM)) == (DAILY_ALARM))
 	    {

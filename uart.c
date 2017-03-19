@@ -1,10 +1,11 @@
 /*
 **********************************************************************
-* Author    Péter Kalicz
-* Version   V0.1
-* Date      2017-02-11
-* Brief     Sensor with interrupt
-
+* @file     uart.c
+* @version  V0.1
+* @date     2017-03-19
+* @brief    UART source file
+**********************************************************************/
+/* Author    Péter Kalicz
 hvlog -- a simple logger based on STM32L0x1 MCU and an EEPROM
 Copyright (C) 2017 Péter Kalicz
 
@@ -22,9 +23,27 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
 
-#include "stm32l0xx.h"
-#include "global.h"
-#include "rtc.h"
-#include "lpwr.h"
-#include "spi.h"
 #include "uart.h"
+
+/**
+   - GPIO clock enable
+   - Configures UART pin GPIO PB7
+*/
+void Configure_GPIOB_Test(void)
+{
+  /* Enable PB7 input */
+  /* (1) Enable GPIOB clock */
+  /* (2) Set PB7 input mode */
+  /* (3) Enable pull-down */
+
+  RCC->IOPENR |= RCC_IOPENR_GPIOBEN; /* (1) */
+  GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE7)); /* (2) */
+  GPIOB->PUPDR = (GPIOB->PUPDR & ~(GPIO_PUPDR_PUPD7)) | (GPIO_PUPDR_PUPD7_1); /* (3) */
+}
+
+void Deconfigure_GPIOB_Test(void)
+{
+  /* (1) Disable GPIOB clock */
+
+  RCC->IOPENR &= ~ (RCC_IOPENR_GPIOBEN); /* (1) */
+}
