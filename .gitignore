@@ -3,8 +3,8 @@
 *bin
 *map
 *o
-snippets
+cube
 startup_stm32*.s
-stm32*.ld
+STM32*.ld
 system_stm32*.c
 TAGS
