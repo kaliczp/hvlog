@@ -147,11 +147,11 @@ void RTC_IRQHandler(void)
   else if(((RTC->ISR & (RTC_ISR_TAMP2F)) == (RTC_ISR_TAMP2F)) && ((RTC->ISR & (RTC_ISR_TSF)) == (RTC_ISR_TSF))) 
     {
       RTC->ISR &= ~(RTC_ISR_TAMP2F); /* clear tamper flag */
+      EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
       TimestampTime = RTC->TSTR;
       TimestampDate = RTC->TSDR;
       RTC->ISR &= ~(RTC_ISR_TSF); /* clear timestamp flag */
       RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
-      EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
       MyStateRegister |= TIMESTAMP_CAPTURED;
     }
   else

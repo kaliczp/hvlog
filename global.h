@@ -18,6 +18,10 @@
 #define STORE_TIMESTAMP_DAT   0x8
 #define STORE_TIMESTAMP_TIM   0x10
 #define SPI_READROM           0x20
+#define UART_SEND             0x40
+#define INIT_SPIREAD          0x80
+#define INIT_UART             0x100
+#define UART_PROGRESS         0x200
 
 /* SPI Macros */
 #define WREN             0b00000110 /* 0x06 Write enable */
@@ -28,6 +32,7 @@
 #define TO_EPR_LENGTH    7
 
 /* Lowpower mode macros */
+#define ModeSleep             0x0
 #define ModeSTOP              0x1
 #define ModeStandby           0x2
 #endif /* MACROS_DEFINED */
@@ -38,3 +43,6 @@ extern volatile uint32_t MyStateRegister;
 /* Timestamp values */
 extern volatile uint32_t TimestampTime;
 extern volatile uint32_t TimestampDate;
+
+extern uint8_t ToEEPROM[TO_EPR_LENGTH];
+extern volatile uint8_t uartsend;

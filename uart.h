@@ -24,7 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
 
 #include "stm32l0xx.h"
+#include "global.h"
 
 void Configure_GPIOB_Test(void);
 void Deconfigure_GPIOB_Test(void);
-
+void Configure_USART1(void);
+void Deconfigure_USART1(void);

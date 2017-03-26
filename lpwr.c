@@ -65,6 +65,7 @@ void Configure_Lpwr(uint8_t LpwrMode)
 	}
       SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; /* (4) */
       __WFI(); /* (5) */
+      SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk; /* (6) */
     }
   else
     {

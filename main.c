@@ -37,7 +37,7 @@ uint32_t OldTimestampTime;
 uint32_t OldTimestampDate;
 
 uint8_t FromLowPower;
-
+volatile uint8_t uartsend;
 uint8_t ToEEPROM[TO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x17, 0x03, 0x15};
 
 int main(void)
@@ -80,7 +80,10 @@ int main(void)
 	      Configure_GPIOB_Test();
 	      if((GPIOB->IDR & (GPIO_IDR_ID7)) == (GPIO_IDR_ID7))
 		{
+		  Deconfigure_GPIOB_Test();
 		  MyStateRegister |= SPI_READROM;
+		  MyStateRegister |= INIT_SPIREAD;
+		  MyStateRegister |= INIT_UART;
 		}
 	      else
 		{
@@ -126,7 +129,7 @@ int main(void)
 	      ToEEPROM[2] = SPIEEPROMaddr & 0xFF;
 	      Write_SPI(ToEEPROM, 7);
 	      SPIEEPROMaddr += 4;
-	      RTC->BKP0R = SPIEEPROMaddr;
+	      RTC->BKP0R = (RTC->BKP0R & ~0xFFFF) | SPIEEPROMaddr;
 	    }
 	  else if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
 	    {
@@ -163,17 +166,53 @@ int main(void)
 	    }
 	  else if((MyStateRegister & (SPI_READROM)) == (SPI_READROM))
 	    {
-	      ReadSPIEEPROMaddr = LastReadSPIEEPROMaddr;
-	      while( ReadSPIEEPROMaddr < SPIEEPROMaddr)
+	      MyStateRegister &= ~SPI_READROM;
+	      if(ReadSPIEEPROMaddr < SPIEEPROMaddr)
 		{
 		  ToEEPROM[0] = READ;
 		  ToEEPROM[1] = (ReadSPIEEPROMaddr >> 8) & 0xFF;
 		  ToEEPROM[2] = ReadSPIEEPROMaddr & 0xFF;
 		  Write_SPI(ToEEPROM, 7);
 		  ReadSPIEEPROMaddr += 4;
+		  MyStateRegister |= UART_SEND;
 		}
-	      LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr;
-	      MyStateRegister &= ~SPI_READROM;
+	      else
+		{
+		  MyStateRegister &= ~UART_SEND;
+		  MyStateRegister &= ~UART_PROGRESS;
+		  LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr;
+		  RTC->BKP0R =  (RTC->BKP0R & ~ 0xFFFF0000) | ((uint32_t)LastReadSPIEEPROMaddr << 16);
+		  Deconfigure_USART1();
+		  Deconfigure_GPIOB_Test();
+		}
+	    }
+	  else if((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS))
+	    {
+	      for(uartsend=3;uartsend < 7; uartsend ++)
+		{
+		  USART1->TDR = ToEEPROM[uartsend];
+		  while ((USART1->ISR & USART_ISR_TXE) == 0)
+		    {
+		    }
+		    USART1->ICR |= USART_ICR_TCCF; /* clear TC flag */
+		}
+	      MyStateRegister |= SPI_READROM;
+	    }
+	  else if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
+	    {
+	      MyStateRegister &= ~(INIT_SPIREAD);
+	      ReadSPIEEPROMaddr = LastReadSPIEEPROMaddr;
+	      MyStateRegister |= SPI_READROM;
+	    }
+	  else if((MyStateRegister & (UART_SEND)) == (UART_SEND))
+	    {
+	      MyStateRegister &= ~UART_SEND;
+	      if((MyStateRegister & (INIT_UART)) == (INIT_UART))
+		{
+		  MyStateRegister &= ~INIT_UART;
+		  Configure_USART1();
+		  MyStateRegister |= UART_PROGRESS;
+		}
 	    }
 	  else if((MyStateRegister & (DAILY_ALARM)) == (DAILY_ALARM))
 	    {
