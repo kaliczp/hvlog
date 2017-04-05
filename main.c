@@ -80,16 +80,14 @@ int main(void)
 	      Configure_GPIOB_Test();
 	      if((GPIOB->IDR & (GPIO_IDR_ID7)) == (GPIO_IDR_ID7))
 		{
-		  Deconfigure_GPIOB_Test();
-		  MyStateRegister |= SPI_READROM;
 		  MyStateRegister |= INIT_SPIREAD;
 		  MyStateRegister |= INIT_UART;
 		}
 	      else
 		{
-		  Deconfigure_GPIOB_Test();
 		  MyStateRegister &= ~ (SPI_READROM);
 		}
+	      Deconfigure_GPIOB_Test();
 	      if(OldTimestampDate < TimestampDate)
 		{
 		  MyStateRegister |= STORE_TIMESTAMP_DAT;
@@ -134,7 +132,7 @@ int main(void)
 	  else if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
 	    {
 	      MyStateRegister &= ~STORE_TIMESTAMP_DAT;
-	      if((MyStateRegister & (SPI_READROM)) == (SPI_READROM))
+	      if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
 		{
 		  ToEEPROM[3] = 0xC0; // Data flag & during read
 		}
@@ -151,7 +149,7 @@ int main(void)
 	  else if((MyStateRegister & (STORE_TIMESTAMP_TIM)) == (STORE_TIMESTAMP_TIM))
 	    {
 	      MyStateRegister &= ~STORE_TIMESTAMP_TIM;
-	      if((MyStateRegister & (SPI_READROM)) == (SPI_READROM))
+	      if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
 		{
 		  ToEEPROM[3] = 0x80; // Time flag & during read
 		}
@@ -181,7 +179,7 @@ int main(void)
 		  MyStateRegister &= ~UART_SEND;
 		  MyStateRegister &= ~UART_PROGRESS;
 		  LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr;
-		  RTC->BKP0R =  (RTC->BKP0R & ~ 0xFFFF0000) | ((uint32_t)LastReadSPIEEPROMaddr << 16);
+		  RTC->BKP0R =  (RTC->BKP0R & 0x0000FFFF) | ((uint32_t)LastReadSPIEEPROMaddr << 16);
 		  Deconfigure_USART1();
 		  Deconfigure_GPIOB_Test();
 		}
