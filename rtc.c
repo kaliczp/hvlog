@@ -74,14 +74,16 @@ void Configure_RTC_Func(void)
   RTC->CR = RTC_CR_ALRAIE | RTC_CR_ALRAE; /* (5) */
   RTC->WPR = 0xFE; /* (6) */
   RTC->WPR = 0x64; /* (6) */
-  /* (7) Tamper configuration:
+  /* (7a) Tamper configuration:
      - Disable precharge (PU)
      - RTCCLK/256 tamper sampling frequency
      - Activate time stamp on tamper detection even if TSE=0
      - input rising edge trigger detection on RTC_TAMP2 (PA0)
-     - Tamper interrupt enable
      - No erase backup registers */
-  RTC->TAMPCR = RTC_TAMPCR_TAMPPUDIS | RTC_TAMPCR_TAMPFREQ | RTC_TAMPCR_TAMPTS | RTC_TAMPCR_TAMP2E | RTC_TAMPCR_TAMPIE | RTC_TAMPCR_TAMP2NOERASE; /* (7) */
+  /* (7b) Tamper interrupt enable */
+
+  RTC->TAMPCR = RTC_TAMPCR_TAMPPUDIS | RTC_TAMPCR_TAMPFREQ | RTC_TAMPCR_TAMPTS | RTC_TAMPCR_TAMP2E | RTC_TAMPCR_TAMP2NOERASE; /* (7a) */
+  RTC->TAMPCR |= RTC_TAMPCR_TAMPIE; /* (7b) */
   
   /* Configure exti for RTC IT */
   /* (8) unmask line 17 */
@@ -98,7 +100,10 @@ void Configure_RTC_Func(void)
   /* (12) Set priority */
   /* (13) Enable RTC_IRQn */
   NVIC_SetPriority(RTC_IRQn, 0x00); /* (12) */ 
-  NVIC_EnableIRQ(RTC_IRQn); /* (13) */ 
+  NVIC_EnableIRQ(RTC_IRQn); /* (13) */
+  RTC->ISR &= ~(RTC_ISR_TAMP2F); /* clear tamper flag */
+  RTC->ISR &= ~(RTC_ISR_TSF); /* clear timestamp flag */
+  RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
 }
 
 /**
@@ -131,21 +136,23 @@ void Init_RTC(uint32_t Time, uint32_t Date)
   RTC->WPR = 0x64; /* (7) */
 }
 
+void RTC_ReEnableTamperIRQ(void)
+{
+  RTC->TAMPCR |= RTC_TAMPCR_TAMPIE; /* Enable Tamper IRQ */
+  RTC->ISR &= ~(RTC_ISR_TAMP2F); /* clear tamper flag */
+  RTC->ISR &= ~(RTC_ISR_TSF); /* clear timestamp flag */
+  RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
+}
+
 /**
    - Handling RTC IRQ
 */
 void RTC_IRQHandler(void)
 {
-  /* Check alarm A flag */
-  if((RTC->ISR & (RTC_ISR_ALRAF)) == (RTC_ISR_ALRAF))
-    {
-      RTC->ISR &= ~RTC_ISR_ALRAF; /* clear flag */
-      EXTI->PR |= EXTI_PR_PR17; /* clear exti line 17 flag */
-      MyStateRegister |= DAILY_ALARM;
-    }
   /* Check tamper and timestamp flag */
-  else if(((RTC->ISR & (RTC_ISR_TAMP2F)) == (RTC_ISR_TAMP2F)) && ((RTC->ISR & (RTC_ISR_TSF)) == (RTC_ISR_TSF))) 
+  if(((RTC->ISR & (RTC_ISR_TAMP2F)) == (RTC_ISR_TAMP2F)) && ((RTC->ISR & (RTC_ISR_TSF)) == (RTC_ISR_TSF)))
     {
+      RTC->TAMPCR &= ~(RTC_TAMPCR_TAMPIE); /* clear interrupt */
       RTC->ISR &= ~(RTC_ISR_TAMP2F); /* clear tamper flag */
       EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
       TimestampTime = RTC->TSTR;
@@ -153,6 +160,13 @@ void RTC_IRQHandler(void)
       RTC->ISR &= ~(RTC_ISR_TSF); /* clear timestamp flag */
       RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
       MyStateRegister |= TIMESTAMP_CAPTURED;
+    }
+  /* Check alarm A flag */
+  else if((RTC->ISR & (RTC_ISR_ALRAF)) == (RTC_ISR_ALRAF))
+    {
+      RTC->ISR &= ~RTC_ISR_ALRAF; /* clear flag */
+      EXTI->PR |= EXTI_PR_PR17; /* clear exti line 17 flag */
+      MyStateRegister |= DAILY_ALARM;
     }
   else
     {

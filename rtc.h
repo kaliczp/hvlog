@@ -29,4 +29,5 @@ void Enable_RTC_registers(void);
 void Configure_RTC_Clock(void);
 void Configure_RTC_Func(void);
 void Init_RTC(uint32_t Time, uint32_t Date);
+void RTC_ReEnableTamperIRQ(void);
 void RTC_IRQHandler(void);

@@ -224,6 +224,7 @@ int main(void)
 	}
       else
 	{
+	  RTC_ReEnableTamperIRQ();
 	  /* Go to low power */
 	  Configure_Lpwr(ModeSTOP);
 	}
