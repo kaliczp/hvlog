@@ -186,13 +186,14 @@ int main(void)
 	    }
 	  else if((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS))
 	    {
+	      /* (1) clear TC flag */
+	      USART1->ICR |= USART_ICR_TCCF; /* (1) */
 	      for(uartsend=3;uartsend < 7; uartsend ++)
 		{
 		  USART1->TDR = ToEEPROM[uartsend];
 		  while ((USART1->ISR & USART_ISR_TXE) == 0)
 		    {
 		    }
-		    USART1->ICR |= USART_ICR_TCCF; /* clear TC flag */
 		}
 	      MyStateRegister |= SPI_READROM;
 	    }

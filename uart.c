@@ -51,14 +51,22 @@ void Deconfigure_GPIOB_Test(void)
 
 void Configure_USART1(void)
 {
-  /* GPIOB already running */
+  volatile uint32_t tmpreg;
   /* GPIO configuration for USART1 signals */
   /* (0) Enable GPIOB clock */
-  /* (1) Select AF mode (10) on PB6 and PB7 */
+  /* (1) Some delay based on LL */
+  /* (2) Select AF mode (10) on PB6 */
+  /* push-pull default */
+  /* (3) pull-up */
+  /* (4) high speed */
   /* AF0 default value for USART1 signals in PB6 and 7 */
   RCC->IOPENR |= RCC_IOPENR_GPIOBEN; /* (0) */
-  GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE6 | GPIO_MODER_MODE7))\
-    | (GPIO_MODER_MODE6_1 | GPIO_MODER_MODE7_1); /* (1) */
+  tmpreg = RCC->IOPENR; /* (1) */
+  (void)tmpreg; /* (1) */
+  GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE6))\
+    | (GPIO_MODER_MODE6_1); /* (2) */
+  GPIOB->PUPDR = (GPIOB->PUPDR & ~(GPIO_PUPDR_PUPD6)) | (GPIO_PUPDR_PUPD6_0); /* (3) */
+  GPIOB->OSPEEDR = (GPIOB->OSPEEDR & ~(GPIO_OSPEEDER_OSPEED6)) | (GPIO_OSPEEDER_OSPEED6_1); /* (4) */
 
   /* Select LSE as USART1 clock source 11 */
   RCC->CCIPR |= RCC_CCIPR_USART1SEL;
@@ -68,19 +76,30 @@ void Configure_USART1(void)
   /* Configure USART1 */
   /* (1) oversampling by 8, 1200 baud because OVER8 */
   /* (2) 8 data bit, 1 start bit, 1 stop bit, no parity*/
+  /* (2) UART enabled with default values above */
+  /* (3) Enable UART transmitter line */
+  /* (4) Wait for idle frame transmission maybe write 0 and 1 in TE */
   USART1->BRR = 0b11011; /* 32768 / 1200 = 27 */; /* (1) */
-  USART1->CR1 = USART_CR1_TE | USART_CR1_UE ; /* (2) */
-
-  /* polling idle frame Transmission */
-  while((USART1->ISR & USART_ISR_TC) != USART_ISR_TC)
+  USART1->CR1 |= USART_CR1_UE ; /* (2) */
+  USART1->CR1 |= USART_CR1_TE ; /* (3) */
+  while((USART1->ISR & USART_ISR_TC) != USART_ISR_TC) /* (4) */
     {
-      /* add time out here for a robust application */
     }
-  USART1->ICR |= USART_ICR_TCCF; /* clear TC flag */
 }
 
 void Deconfigure_USART1(void)
 {
-  /* Disable USART1 clock */
-  RCC->APB2ENR &= ~ (RCC_APB2ENR_USART1EN);
+  /* (1) disable transmitter */
+  /* (2) wait until TC=1 avoid corrupt last transmission */
+  /* (3) UART disabled */
+  /* (4) Disable USART1 clock */
+  /* (5) Disable GPIOB clock */
+  USART1->CR1 &= ~(USART_CR1_TE) ; /* (1) */
+  while((USART1->ISR & USART_ISR_TC) != USART_ISR_TC)  /* (2) */
+    {
+      /* add time out here for a robust application */
+    }
+  USART1->CR1 &= ~ (USART_CR1_UE) ; /* (3) */
+  RCC->APB2ENR &= ~ (RCC_APB2ENR_USART1EN); /* (4) */
+  RCC->IOPENR &= ~ (RCC_IOPENR_GPIOBEN); /* (5) */
 }
