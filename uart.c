@@ -74,12 +74,15 @@ void Configure_USART1(void)
   RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
 
   /* Configure USART1 */
-  /* (1) oversampling by 8, 1200 baud because OVER8 */
+  /* (1a) oversampling by 8 */
+  /* 2*32768 / 2400 = 27 */;
+  /* (1b) 2400 baud shifted right RM 0377 p.675 */
   /* (2) 8 data bit, 1 start bit, 1 stop bit, no parity*/
   /* (2) UART enabled with default values above */
   /* (3) Enable UART transmitter line */
   /* (4) Wait for idle frame transmission maybe write 0 and 1 in TE */
-  USART1->BRR = 0b11011; /* 32768 / 1200 = 27 */; /* (1) */
+  USART1->BRR = 0b10101; /* (1) */
+  USART1->CR1 |= USART_CR1_OVER8 ; /* (2) */
   USART1->CR1 |= USART_CR1_UE ; /* (2) */
   USART1->CR1 |= USART_CR1_TE ; /* (3) */
   while((USART1->ISR & USART_ISR_TC) != USART_ISR_TC) /* (4) */
