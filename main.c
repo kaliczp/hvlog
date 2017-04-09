@@ -101,6 +101,7 @@ int main(void)
 	  else if((MyStateRegister & (SPI_SAVEROM)) == (SPI_SAVEROM))
 	    {
 	      MyStateRegister &= ~SPI_SAVEROM;
+	      Configure_GPIO_SPI1();
 	      // Read Status Reg
 	      ToEEPROM[0] = RDSR;
 	      Write_SPI(ToEEPROM, 2);
@@ -126,6 +127,7 @@ int main(void)
 	      ToEEPROM[0] = WRITE;
 	      ToEEPROM[2] = SPIEEPROMaddr & 0xFF;
 	      Write_SPI(ToEEPROM, 7);
+	      Deconfigure_GPIO_SPI1();
 	      SPIEEPROMaddr += 4;
 	      RTC->BKP0R = (RTC->BKP0R & ~0xFFFF) | SPIEEPROMaddr;
 	    }
@@ -181,6 +183,7 @@ int main(void)
 		  LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr;
 		  RTC->BKP0R =  (RTC->BKP0R & 0x0000FFFF) | ((uint32_t)LastReadSPIEEPROMaddr << 16);
 		  Deconfigure_USART1();
+		  Deconfigure_GPIO_SPI1();
 		  Deconfigure_GPIOB_Test();
 		}
 	    }
@@ -200,6 +203,16 @@ int main(void)
 	  else if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
 	    {
 	      MyStateRegister &= ~(INIT_SPIREAD);
+	      Configure_GPIO_SPI1();
+	      // Read Status Reg
+	      ToEEPROM[0] = RDSR;
+	      Write_SPI(ToEEPROM, 2);
+	      if(ToEEPROM[1] > 0)
+		{
+		  ConfigureLPTIM1(90);
+		  __WFI();
+		  DeconfigureLPTIM1();
+		}
 	      ReadSPIEEPROMaddr = LastReadSPIEEPROMaddr;
 	      MyStateRegister |= SPI_READROM;
 	    }

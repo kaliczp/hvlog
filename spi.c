@@ -33,9 +33,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
   */
 void Configure_GPIO_SPI1(void)
 {
+  volatile uint32_t tmpreg;
   /* Enable the peripheral clock of GPIOA and GPIOB */
+  /* (2) Some delay based on LL */
   RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
   RCC->IOPENR |= RCC_IOPENR_GPIOBEN;
+  tmpreg = RCC->IOPENR; /* (2) */
+  (void)tmpreg; /* (2) */
 
   /* (1) Select AF mode (10) on PA15 (NSS) */
   /* (2) AF0 for SPI1 signals */
@@ -95,6 +99,10 @@ void Activate_SPI1(void)
 
 void Deactivate_SPI1(void)
 {
+  /* wait until BSY=0 */
+  while((SPI1->SR & SPI_SR_BSY) == SPI_SR_BSY)
+    {
+    }
   /* Disable SPI1 */
   SPI1->CR1 &= ~SPI_CR1_SPE;
 }
@@ -107,7 +115,6 @@ void Deconfigure_SPI1(void)
 
 void Write_SPI(uint8_t *buff, uint8_t length)
 {
-  Configure_GPIO_SPI1();
   Configure_SPI1();
   Activate_SPI1();
   /* Test SPI */
@@ -128,5 +135,4 @@ void Write_SPI(uint8_t *buff, uint8_t length)
     }
   Deactivate_SPI1();
   Deconfigure_SPI1();
-  Deconfigure_GPIO_SPI1();
 }
