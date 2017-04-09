@@ -125,9 +125,11 @@ int main(void)
 	      ToEEPROM[0] = WREN;
 	      Write_SPI(ToEEPROM, 1);
 	      ToEEPROM[0] = WRITE;
+	      ToEEPROM[1] = (SPIEEPROMaddr >> 8) & 0xFF;
 	      ToEEPROM[2] = SPIEEPROMaddr & 0xFF;
 	      Write_SPI(ToEEPROM, 7);
 	      Deconfigure_GPIO_SPI1();
+	      /* Checque SPI EEPROM address valid? */
 	      SPIEEPROMaddr += 4;
 	      RTC->BKP0R = (RTC->BKP0R & ~0xFFFF) | SPIEEPROMaddr;
 	    }
