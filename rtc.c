@@ -141,13 +141,9 @@ void RTC_ReEnableTamperIRQ(void)
   /* (1) RTC IRQ fired during data processing? */
   if(NVIC_GetPendingIRQ(RTC_IRQn)) /* (1) */
     {
-      NVIC_ClearPendingIRQ(RTC_IRQn);
-      /* Here the place for some registration */
+      /* Here the place for some notification */
     }
-  RTC->ISR &= ~(RTC_ISR_TAMP2F); /* clear tamper flag */
-  RTC->ISR &= ~(RTC_ISR_TSF); /* clear timestamp flag */
-  RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
-  RTC->TAMPCR |= RTC_TAMPCR_TAMPIE; /* Enable Tamper IRQ */
+  NVIC_EnableIRQ(RTC_IRQn);
 }
 
 /**
@@ -158,7 +154,6 @@ void RTC_IRQHandler(void)
   /* Check tamper and timestamp flag */
   if(((RTC->ISR & (RTC_ISR_TAMP2F)) == (RTC_ISR_TAMP2F)) && ((RTC->ISR & (RTC_ISR_TSF)) == (RTC_ISR_TSF)))
     {
-      RTC->TAMPCR &= ~(RTC_TAMPCR_TAMPIE); /* Disable interrupt */
       RTC->ISR &= ~(RTC_ISR_TAMP2F); /* clear tamper flag */
       EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
       TimestampTime = RTC->TSTR;

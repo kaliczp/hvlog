@@ -75,6 +75,7 @@ int main(void)
 	{
 	  if((MyStateRegister & (TIMESTAMP_CAPTURED)) == (TIMESTAMP_CAPTURED))
 	    {
+	      NVIC_DisableIRQ(RTC_IRQn);
 	      MyStateRegister &= ~TIMESTAMP_CAPTURED;
 	      /* Test UART */
 	      Configure_GPIOB_Test();
