@@ -45,15 +45,17 @@ void ConfigureLPTIM1(uint32_t ValueARR)
 
   /* Configure EXTI and NVIC for LPTIM1 */
   /* (5) Configure extended interrupt for LPTIM1 */
-  /* (6) Enable Interrupt on LPTIM1 */
-  /* (7) Set priority for LPTIM1 lowest */
+  /* (6) Set priority for LPTIM1 lowest */
+  /* (7) Enable Interrupt on LPTIM1 */
   EXTI->IMR |= EXTI_IMR_IM29; /* (5) */
-  NVIC_EnableIRQ(LPTIM1_IRQn); /* (6) */
-  NVIC_SetPriority(LPTIM1_IRQn, 3); /* (7) */
+  NVIC_SetPriority(LPTIM1_IRQn, 3); /* (6) */
+  NVIC_EnableIRQ(LPTIM1_IRQn); /* (7) */
 }
 
 void DeconfigureLPTIM1(void)
 {
+  NVIC_DisableIRQ(LPTIM1_IRQn); /* (6) */
+  EXTI->IMR &= ~EXTI_IMR_IM29; /* (5) */
   /* (1) Disable LPTimer  */
   LPTIM1->CR &= ~(LPTIM_CR_ENABLE); /* (1) */
 }
