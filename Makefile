@@ -64,7 +64,7 @@ $(TARGET).elf: startup_$(MCU_LC).s $(OBJS)
 
 ## Emacs etags
 tags:
-	etags *h *c $(CUBE_CORE)/*h $(CUBE_STM32)/Include/$(MCU_LC).h system_$(MCU_FAMILY).c startup_$(MCU_LC).s $(MCU_UC)K6Tx_FLASH.ld
+	etags *h *c $(CUBE_CORE)/core_cm0plus.h $(CUBE_CORE)/arm_common_tables.h $(CUBE_CORE)/cmsis_gcc.h $(CUBE_STM32)/Include/$(MCU_LC).h system_$(MCU_FAMILY).c startup_$(MCU_LC).s $(MCU_UC)K6Tx_FLASH.ld
 
 ## Copy system files
 template:
