@@ -55,6 +55,8 @@ void Configure_GPIO_SPI1(void)
   GPIOB->AFR[0] = (GPIOB->AFR[0] & \
                    ~((0xF<<(4*3)) | \
                      (0xF<<(4*4)) | ((uint32_t)0xF<<(4*5)))); /* (4) */
+  GPIOB->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEED3 | GPIO_OSPEEDER_OSPEED4 | GPIO_OSPEEDER_OSPEED5)| (GPIO_OSPEEDER_OSPEED3_0 | \
+                     GPIO_OSPEEDER_OSPEED4_0 | GPIO_OSPEEDER_OSPEED5_0); /* (5) */
 }
 
 void Deconfigure_GPIO_SPI1(void)
