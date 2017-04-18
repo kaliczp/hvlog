@@ -142,6 +142,8 @@ void RTC_ReEnableTamperIRQ(void)
   if(NVIC_GetPendingIRQ(RTC_IRQn)) /* (1) */
     {
       /* Here the place for some notification */
+      EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
+      NVIC_ClearPendingIRQ(RTC_IRQn);
     }
   NVIC_EnableIRQ(RTC_IRQn);
 }

@@ -74,6 +74,7 @@ int main(void)
       if(MyStateRegister > 0)
 	{
 	  if((MyStateRegister & (TIMESTAMP_CAPTURED)) == (TIMESTAMP_CAPTURED))
+	    /* Prevent overwrite TS with some additional flag check */
 	    {
 	      NVIC_DisableIRQ(RTC_IRQn);
 	      MyStateRegister &= ~TIMESTAMP_CAPTURED;
