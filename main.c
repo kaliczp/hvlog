@@ -38,6 +38,7 @@ uint32_t OldTimestampDate;
 
 uint8_t FromLowPower;
 volatile uint8_t uartsend;
+uint8_t ToEEPROM[TO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x17, 0x03, 0x15};
 
 int main(void)
 {
@@ -99,7 +100,6 @@ int main(void)
 	      OldTimestampDate = TimestampDate;
 	      RTC->BKP1R = OldTimestampTime;
 	      RTC->BKP2R = OldTimestampDate;
-	    }
 	    }
 	  else if((MyStateRegister & (SPI_READROM)) == (SPI_READROM))
 	    {
@@ -183,64 +183,64 @@ int main(void)
 }
 void StoreDateTime()
 {
-  uint8_t ToEEPROM[TO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x21, 0x31, 0x0, 0x40, 0x17, 0x10, 0x01,};
+  uint8_t TSToEEPROM[TSTO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x21, 0x31, 0x0, 0x40, 0x17, 0x10, 0x01,};
   uint8_t spibufflength = 4;
 
   if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
     {
-      ToEEPROM[3] = 0x80; // Time flag & during read
+      TSToEEPROM[3] = 0x80; // Time flag & during read
     }
   else
     {
-      ToEEPROM[3] = 0x0; // Time flag
+      TSToEEPROM[3] = 0x0; // Time flag
     }
-  ToEEPROM[4] = (TimestampTime >> 16) & 0xFF;
-  ToEEPROM[5] = (TimestampTime >> 8) & 0xFF;
-  ToEEPROM[6] = TimestampTime & 0xFF;
+  TSToEEPROM[4] = (TimestampTime >> 16) & 0xFF;
+  TSToEEPROM[5] = (TimestampTime >> 8) & 0xFF;
+  TSToEEPROM[6] = TimestampTime & 0xFF;
   if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
     {
       MyStateRegister &= ~STORE_TIMESTAMP_DAT;
       spibufflength = 8;
       if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
 	{
-	  ToEEPROM[7] = 0xC0; // Data flag & during read
+	  TSToEEPROM[7] = 0xC0; // Data flag & during read
 	}
       else
 	{
-	  ToEEPROM[7] = 0x40; // Date flag
+	  TSToEEPROM[7] = 0x40; // Date flag
 	}
-      ToEEPROM[8] = (TimestampDate >> 16) & 0xFF;
-      ToEEPROM[9] = (TimestampDate >> 8) & 0xFF;
-      ToEEPROM[10] = TimestampDate & 0xFF;
+      TSToEEPROM[8] = (TimestampDate >> 16) & 0xFF;
+      TSToEEPROM[9] = (TimestampDate >> 8) & 0xFF;
+      TSToEEPROM[10] = TimestampDate & 0xFF;
     }
   Configure_GPIO_SPI1();
   // Read Status Reg
-  ToEEPROM[0] = RDSR;
-  Write_SPI(ToEEPROM, 2);
-  if(ToEEPROM[1] > 0)
+  TSToEEPROM[0] = RDSR;
+  Write_SPI(TSToEEPROM, 2);
+  if(TSToEEPROM[1] > 0)
     {
       ConfigureLPTIM1(99);
       /* __WFI(); */
       DeconfigureLPTIM1();
-      ToEEPROM[0] = RDSR;
-      Write_SPI(ToEEPROM, 2);
-      if(ToEEPROM[1] > 0)
+      TSToEEPROM[0] = RDSR;
+      Write_SPI(TSToEEPROM, 2);
+      if(TSToEEPROM[1] > 0)
 	{
 	  ConfigureLPTIM1(10);
 	  /* __WFI(); */
 	  DeconfigureLPTIM1();
-	  ToEEPROM[0] = RDSR;
-	  Write_SPI(ToEEPROM, 2);
+	  TSToEEPROM[0] = RDSR;
+	  Write_SPI(TSToEEPROM, 2);
 	}
     }
   // Save data to SPIEEPROM
   // Test the page barrier!
-  ToEEPROM[0] = WREN;
-  Write_SPI(ToEEPROM, 1);
-  ToEEPROM[0] = WRITE;
-  ToEEPROM[1] = (SPIEEPROMaddr >> 8) & 0xFF;
-  ToEEPROM[2] = SPIEEPROMaddr & 0xFF;
-  Write_SPI(ToEEPROM, spibufflength + 3);
+  TSToEEPROM[0] = WREN;
+  Write_SPI(TSToEEPROM, 1);
+  TSToEEPROM[0] = WRITE;
+  TSToEEPROM[1] = (SPIEEPROMaddr >> 8) & 0xFF;
+  TSToEEPROM[2] = SPIEEPROMaddr & 0xFF;
+  Write_SPI(TSToEEPROM, spibufflength + 3);
   Deconfigure_GPIO_SPI1();
   /* Checque SPI EEPROM address valid? */
   SPIEEPROMaddr += spibufflength;
