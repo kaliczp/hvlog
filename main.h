@@ -1,8 +1,8 @@
 /*
 **********************************************************************
 * Author    Péter Kalicz
-* Version   V0.1
-* Date      2017-02-11
+* Version   V0.5
+* Date      2017-10-01
 * Brief     Sensor with interrupt
 
 hvlog -- a simple logger based on STM32L0x1 MCU and an EEPROM
@@ -28,3 +28,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 #include "lpwr.h"
 #include "spi.h"
 #include "uart.h"
+
+void StoreDateTime(void);
