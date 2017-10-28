@@ -45,6 +45,7 @@ void Configure_GPIO_SPI1(void)
   /* (2) AF0 for SPI1 signals */
   /* (3) Select AF mode (10) on PB3 (SCK), PB4 (MISO), PB5 (MOSI) */
   /* (4) AF0 for SPI1 signals */
+  /* (5) Select medium output speed (01) for SPI1 pins */
   GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODE15)) | GPIO_MODER_MODE15_1; /* (1) */
   GPIOA->AFR[1] = (GPIOA->AFR[1] & ~((0xF<<(4*7)))); /* (2) */
   GPIOB->MODER = (GPIOB->MODER
