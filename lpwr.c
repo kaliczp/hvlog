@@ -48,6 +48,7 @@ void Configure_Lpwr(uint8_t LpwrMode)
       /* (3a) Select STOP mode in the PWR_CR register */
       /* (3b) Select Standby mode in the PWR_CR register */
       /* (4) Enter deep sleep when __WFI() */
+      /* (4b) Disable PWR clock */
       /* (5) WFI */
       /* (6) Clear deep sleep after wake up */
       RCC->APB1ENR |= RCC_APB1ENR_PWREN; /* (0) */
@@ -64,6 +65,7 @@ void Configure_Lpwr(uint8_t LpwrMode)
 	  PWR->CR |= PWR_CR_PDDS;  /* (3b) */
 	}
       SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; /* (4) */
+      RCC->APB1ENR &= ~RCC_APB1ENR_PWREN; /* (4b) */
       __WFI(); /* (5) */
       SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk; /* (6) */
     }
