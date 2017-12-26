@@ -28,5 +28,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 void Configure_GPIOB_Test(void);
 void Deconfigure_GPIOB_Test(void);
-void Configure_USART1(void);
-void Deconfigure_USART1(void);
+void Configure_USART2(void);
+void Deconfigure_USART2(void);

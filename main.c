@@ -119,7 +119,7 @@ int main(void)
 		  MyStateRegister &= ~UART_PROGRESS;
 		  LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr;
 		  RTC->BKP0R =  (RTC->BKP0R & 0x0000FFFF) | ((uint32_t)LastReadSPIEEPROMaddr << 16);
-		  Deconfigure_USART1();
+		  Deconfigure_USART2();
 		  Deconfigure_GPIO_SPI1();
 		  Deconfigure_GPIOB_Test();
 		}
@@ -127,11 +127,11 @@ int main(void)
 	  else if((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS))
 	    {
 	      /* (1) clear TC flag */
-	      USART1->ICR |= USART_ICR_TCCF; /* (1) */
+	      USART2->ICR |= USART_ICR_TCCF; /* (1) */
 	      for(uartsend=3;uartsend < 7; uartsend ++)
 		{
-		  USART1->TDR = ToEEPROM[uartsend];
-		  while ((USART1->ISR & USART_ISR_TXE) == 0)
+		  USART2->TDR = ToEEPROM[uartsend];
+		  while ((USART2->ISR & USART_ISR_TXE) == 0)
 		    {
 		    }
 		}
@@ -159,7 +159,7 @@ int main(void)
 	      if((MyStateRegister & (INIT_UART)) == (INIT_UART))
 		{
 		  MyStateRegister &= ~INIT_UART;
-		  Configure_USART1();
+		  Configure_USART2();
 		  MyStateRegister |= UART_PROGRESS;
 		}
 	    }

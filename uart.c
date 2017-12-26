@@ -49,17 +49,17 @@ void Deconfigure_GPIOB_Test(void)
   RCC->IOPENR &= ~ (RCC_IOPENR_GPIOBEN); /* (2) */
 }
 
-void Configure_USART1(void)
+void Configure_USART2(void)
 {
   volatile uint32_t tmpreg;
-  /* GPIO configuration for USART1 signals */
+  /* GPIO configuration for USART2 signals */
   /* (0) Enable GPIOB clock */
   /* (1) Some delay based on LL */
   /* (2) Select AF mode (10) on PB6 */
   /* push-pull default */
   /* (3) pull-up */
   /* (4) high speed */
-  /* AF0 default value for USART1 signals in PB6 and 7 */
+  /* AF0 default value for USART2 signals in PB6 and 7 */
   RCC->IOPENR |= RCC_IOPENR_GPIOBEN; /* (0) */
   tmpreg = RCC->IOPENR; /* (1) */
   (void)tmpreg; /* (1) */
@@ -68,12 +68,12 @@ void Configure_USART1(void)
   GPIOB->PUPDR = (GPIOB->PUPDR & ~(GPIO_PUPDR_PUPD6)) | (GPIO_PUPDR_PUPD6_0); /* (3) */
   GPIOB->OSPEEDR = (GPIOB->OSPEEDR & ~(GPIO_OSPEEDER_OSPEED6)) | (GPIO_OSPEEDER_OSPEED6_1); /* (4) */
 
-  /* Select LSE as USART1 clock source 11 */
-  RCC->CCIPR |= RCC_CCIPR_USART1SEL;
-  /* Enable the peripheral clock USART1 */
-  RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
+  /* Select LSE as USART2 clock source 11 */
+  RCC->CCIPR |= RCC_CCIPR_USART2SEL;
+  /* Enable the peripheral clock USART2 */
+  RCC->APB2ENR |= RCC_APB1ENR_USART2EN;
 
-  /* Configure USART1 */
+  /* Configure USART2 */
   /* (1a) oversampling by 8 */
   /* 2*32768 / 2400 = 27 */;
   /* (1b) 2400 baud shifted right RM 0377 p.675 */
@@ -81,28 +81,28 @@ void Configure_USART1(void)
   /* (2) UART enabled with default values above */
   /* (3) Enable UART transmitter line */
   /* (4) Wait for idle frame transmission maybe write 0 and 1 in TE */
-  USART1->BRR = 0b10101; /* (1) */
-  USART1->CR1 |= USART_CR1_OVER8 ; /* (2) */
-  USART1->CR1 |= USART_CR1_UE ; /* (2) */
-  USART1->CR1 |= USART_CR1_TE ; /* (3) */
-  while((USART1->ISR & USART_ISR_TC) != USART_ISR_TC) /* (4) */
+  USART2->BRR = 0b10101; /* (1) */
+  USART2->CR1 |= USART_CR1_OVER8 ; /* (2) */
+  USART2->CR1 |= USART_CR1_UE ; /* (2) */
+  USART2->CR1 |= USART_CR1_TE ; /* (3) */
+  while((USART2->ISR & USART_ISR_TC) != USART_ISR_TC) /* (4) */
     {
     }
 }
 
-void Deconfigure_USART1(void)
+void Deconfigure_USART2(void)
 {
   /* (1) disable transmitter */
   /* (2) wait until TC=1 avoid corrupt last transmission */
   /* (3) UART disabled */
-  /* (4) Disable USART1 clock */
+  /* (4) Disable USART2 clock */
   /* (5) Disable GPIOB clock */
-  USART1->CR1 &= ~(USART_CR1_TE) ; /* (1) */
-  while((USART1->ISR & USART_ISR_TC) != USART_ISR_TC)  /* (2) */
+  USART2->CR1 &= ~(USART_CR1_TE) ; /* (1) */
+  while((USART2->ISR & USART_ISR_TC) != USART_ISR_TC)  /* (2) */
     {
       /* add time out here for a robust application */
     }
-  USART1->CR1 &= ~ (USART_CR1_UE) ; /* (3) */
-  RCC->APB2ENR &= ~ (RCC_APB2ENR_USART1EN); /* (4) */
+  USART2->CR1 &= ~ (USART_CR1_UE) ; /* (3) */
+  RCC->APB2ENR &= ~ (RCC_APB1ENR_USART2EN); /* (4) */
   RCC->IOPENR &= ~ (RCC_IOPENR_GPIOBEN); /* (5) */
 }
