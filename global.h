@@ -29,8 +29,8 @@
 #define RDSR             0b00000101 /* 0x05 Read Status Register */
 #define WRITE            0b00000010 /* 0x02 */
 #define READ             0b00000011 /* 0x03 */
-#define TO_EPR_LENGTH    7
-#define TSTO_EPR_LENGTH    11
+#define TO_EPR_LENGTH    8
+#define TSTO_EPR_LENGTH    12
 
 /* Lowpower mode macros */
 #define ModeSleep             0x0
