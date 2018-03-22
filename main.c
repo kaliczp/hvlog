@@ -33,8 +33,6 @@ volatile uint32_t TimestampDate;
 uint16_t SPIEEPROMaddr;
 uint16_t LastReadSPIEEPROMaddr;
 uint16_t ReadSPIEEPROMaddr;
-uint32_t OldTimestampTime;
-uint32_t OldTimestampDate;
 
 uint8_t FromLowPower;
 volatile uint8_t uartsend;
@@ -65,9 +63,6 @@ int main(void)
   /* Important variables. Loaded from RTC domain */
   SPIEEPROMaddr =  RTC->BKP0R & 0xFFFF;
   LastReadSPIEEPROMaddr =  (RTC->BKP0R >> 16) & 0xFFFF;
-  /* Older timestamp values */
-  OldTimestampTime = RTC->BKP1R;
-  OldTimestampDate = RTC->BKP2R;
 
   while(1)
     {
@@ -91,15 +86,13 @@ int main(void)
 		  MyStateRegister &= ~ (SPI_READROM);
 		}
 	      Deconfigure_GPIOB_Test();
-	      if(OldTimestampDate < TimestampDate)
+	      if(RTC->BKP2R < TimestampDate)
 		{
 		  MyStateRegister |= STORE_TIMESTAMP_DAT;
 		}
 	      StoreDateTime();
-	      OldTimestampTime = TimestampTime;
-	      OldTimestampDate = TimestampDate;
-	      RTC->BKP1R = OldTimestampTime;
-	      RTC->BKP2R = OldTimestampDate;
+	      RTC->BKP1R = TimestampTime;
+	      RTC->BKP2R = TimestampDate;
 	    }
 	  else if((MyStateRegister & (SPI_READROM)) == (SPI_READROM))
 	    {
