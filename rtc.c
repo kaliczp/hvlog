@@ -75,13 +75,15 @@ void Configure_RTC_Func(void)
   RTC->WPR = 0xFE; /* (6) */
   RTC->WPR = 0x64; /* (6) */
   /* (7a) Tamper configuration:
+     - Tamper activated after 2 samples (precharged 1 RTCCLOCK TAMPPRCH)
+       TAMP2TRG = 0, low input triggers
      - RTCCLK/256 tamper sampling frequency
      - Activate time stamp on tamper detection even if TSE=0
-     - input rising edge trigger detection on RTC_TAMP2 (PA0)
+     - enable input low level detection on RTC_TAMP2 (PA0)
      - No erase backup registers */
   /* (7b) Tamper interrupt enable */
 
-  RTC->TAMPCR = RTC_TAMPCR_TAMPFREQ | RTC_TAMPCR_TAMPTS | RTC_TAMPCR_TAMP2E | RTC_TAMPCR_TAMP2NOERASE; /* (7a) */
+  RTC->TAMPCR = RTC_TAMPCR_TAMPFLT_0 | RTC_TAMPCR_TAMPFREQ | RTC_TAMPCR_TAMPTS | RTC_TAMPCR_TAMP2E | RTC_TAMPCR_TAMP2NOERASE; /* (7a) */
   RTC->TAMPCR |= RTC_TAMPCR_TAMPIE; /* (7b) */
   
   /* Configure exti for RTC IT */
