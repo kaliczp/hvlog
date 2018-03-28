@@ -140,7 +140,7 @@ int main(void)
 	      if(ToEEPROM[1] > 0)
 		{
 		  ConfigureLPTIM1(90);
-		  /* __WFI(); */
+		  Configure_Lpwr(ModeSTOP);
 		  DeconfigureLPTIM1();
 		}
 	      ReadSPIEEPROMaddr = LastReadSPIEEPROMaddr;

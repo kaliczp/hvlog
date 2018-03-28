@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 #include "lptim.h"
 
-void ConfigureLPTIM1(uint32_t ValueARR)
+void ConfigureLPTIM1(uint16_t ValueARR)
 {
   /* (1a) Select clocksource for LPTimer1  RM0377 205p*/
   /* (1b) Enable the peripheral clock of LPTimer1 RM0377 198p*/
@@ -58,6 +58,7 @@ void DeconfigureLPTIM1(void)
   EXTI->IMR &= ~EXTI_IMR_IM29; /* (5) */
   /* (1) Disable LPTimer  */
   LPTIM1->CR &= ~(LPTIM_CR_ENABLE); /* (1) */
+  RCC->APB1ENR &= ~(RCC_APB1ENR_LPTIM1EN); /* (1b) */
 }
 
 void LPTIM1_IRQHandler(void)
