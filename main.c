@@ -221,10 +221,12 @@ void StoreDateTime()
       TSToEEPROM[10] = TimestampDate & 0xFF;
     }
   Configure_GPIO_SPI1();
+  TSToEEPROM[0] = WREN;
+  Write_SPI(TSToEEPROM, 1);
   // Read Status Reg
   TSToEEPROM[0] = RDSR;
   Write_SPI(TSToEEPROM, 2);
-  if(TSToEEPROM[1] > 0)
+  if((TSToEEPROM[1] & (WEL)) == (WEL))
     {
       // Save data to SPIEEPROM
       // Test the page barrier!

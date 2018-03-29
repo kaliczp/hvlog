@@ -29,6 +29,7 @@
 #define RDSR             0b00000101 /* 0x05 Read Status Register */
 #define WRITE            0b00000010 /* 0x02 */
 #define READ             0b00000011 /* 0x03 */
+#define WEL              0b00000010 /* Write enable latch */
 #define TO_EPR_LENGTH    7
 #define TSTO_EPR_LENGTH    11
 
