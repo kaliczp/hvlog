@@ -146,6 +146,9 @@ void RTC_ReEnableTamperIRQ(void)
       EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
       NVIC_ClearPendingIRQ(RTC_IRQn);
     }
+  RTC->ISR &= ~(RTC_ISR_TSF); /* clear timestamp flag */
+  RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
+  RTC->ISR &= ~(RTC_ISR_TAMP2F); /* clear tamper flag */
   NVIC_EnableIRQ(RTC_IRQn);
 }
 
@@ -171,6 +174,10 @@ void RTC_IRQHandler(void)
       RTC->ISR &= ~RTC_ISR_ALRAF; /* clear flag */
       EXTI->PR |= EXTI_PR_PR17; /* clear exti line 17 flag */
       MyStateRegister |= DAILY_ALARM;
+    }
+  else if(((RTC->ISR & (RTC_ISR_TSOVF)) == (RTC_ISR_TSOVF)))
+    {
+      RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
     }
   else
     {
