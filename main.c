@@ -88,11 +88,24 @@ int main(void)
 	      Deconfigure_GPIOB_Test();
 	      if(RTC->BKP2R < TimestampDate)
 		{
-		  MyStateRegister |= STORE_TIMESTAMP_DAT;
+		  MyStateRegister |= (STORE_TIMESTAMP_DAT | STORE_TIMESTAMP_TIM);
 		}
-	      StoreDateTime();
-	      RTC->BKP1R = TimestampTime;
-	      RTC->BKP2R = TimestampDate;
+	      /* Prevent debouncing, store same time */
+	      else if(RTC->BKP1R < TimestampTime)
+		{
+		  MyStateRegister |= STORE_TIMESTAMP_TIM;
+		}
+	      if((MyStateRegister & (STORE_TIMESTAMP_TIM)) == (STORE_TIMESTAMP_TIM))
+		{
+		  MyStateRegister &= ~ (STORE_TIMESTAMP_TIM);
+		  StoreDateTime();
+		  RTC->BKP1R = TimestampTime;
+		  if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
+		    {
+		      MyStateRegister &= ~STORE_TIMESTAMP_DAT;
+		      RTC->BKP2R = TimestampDate;
+		    }
+		}
 	    }
 	  else if((MyStateRegister & (SPI_READROM)) == (SPI_READROM))
 	    {
@@ -194,7 +207,6 @@ void StoreDateTime()
   TSToEEPROM[6] = TimestampTime & 0xFF;
   if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
     {
-      MyStateRegister &= ~STORE_TIMESTAMP_DAT;
       spibufflength = 8;
       if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
 	{
