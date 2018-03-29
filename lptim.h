@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 #include "stm32l0xx.h"
 
-void ConfigureLPTIM1(uint16_t ValueARR);
+void ConfigureLPTIM1(void);
+void StartLPTIM1(uint16_t ValueARR);
 void DeconfigureLPTIM1(void);
 void LPTIM1_IRQHandler(void);

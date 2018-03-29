@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 #include "lptim.h"
 
-void ConfigureLPTIM1(uint16_t ValueARR)
+void ConfigureLPTIM1(void)
 {
   /* (1a) Select clocksource for LPTimer1  RM0377 205p*/
   /* (1b) Enable the peripheral clock of LPTimer1 RM0377 198p*/
@@ -36,12 +36,8 @@ void ConfigureLPTIM1(uint16_t ValueARR)
 
   /* (2) Enable interrupt on Autoreload match */
   /* (3) Enable LPTimer  */
-  /* (4) Set Autoreload to 163 in order to get an interrupt after 164 pulses
-         with 32kHz means almost 5ms */
   LPTIM1->IER |= LPTIM_IER_ARRMIE; /* (2) */
   LPTIM1->CR |= LPTIM_CR_ENABLE; /* (3) */
-  LPTIM1->ARR = ValueARR; /* (4) */
-  LPTIM1->CR |= LPTIM_CR_SNGSTRT; /* start the counter in single */
 
   /* Configure EXTI and NVIC for LPTIM1 */
   /* (5) Configure extended interrupt for LPTIM1 */
@@ -50,6 +46,14 @@ void ConfigureLPTIM1(uint16_t ValueARR)
   EXTI->IMR |= EXTI_IMR_IM29; /* (5) */
   NVIC_SetPriority(LPTIM1_IRQn, 3); /* (6) */
   NVIC_EnableIRQ(LPTIM1_IRQn); /* (7) */
+}
+
+void StartLPTIM1(uint16_t ValueARR)
+{
+  /* (1) Set Autoreload */
+  /* (2) Start the counter in single shot mode */
+  LPTIM1->ARR = ValueARR; /* (1) */
+  LPTIM1->CR |= LPTIM_CR_SNGSTRT; /* (2) */
 }
 
 void DeconfigureLPTIM1(void)
