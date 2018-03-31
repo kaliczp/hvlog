@@ -193,6 +193,7 @@ void StoreDateTime()
 {
   uint8_t TSToEEPROM[TSTO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x21, 0x31, 0x0, 0x40, 0x17, 0x10, 0x01,};
   uint8_t spibufflength = 4;
+  uint8_t pagebarrier = 0;
 
   if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
     {
@@ -219,6 +220,12 @@ void StoreDateTime()
       TSToEEPROM[8] = (TimestampDate >> 16) & 0xFF;
       TSToEEPROM[9] = (TimestampDate >> 8) & 0xFF;
       TSToEEPROM[10] = TimestampDate & 0xFF;
+      /* Test the page barrier! SPI_EPR_PG_SUB1 page size in bytes */
+      /* It uses binary modulo */
+      if(((SPIEEPROMaddr + 4) & SPI_EPR_PG_SUB1) == 0)
+	{
+	  pagebarrier = 1;
+	}
     }
   Configure_GPIO_SPI1();
   TSToEEPROM[0] = WREN;
@@ -229,11 +236,40 @@ void StoreDateTime()
   if((TSToEEPROM[1] & (WEL)) == (WEL))
     {
       // Save data to SPIEEPROM
-      // Test the page barrier!
       TSToEEPROM[0] = WRITE;
       TSToEEPROM[1] = (SPIEEPROMaddr >> 8) & 0xFF;
       TSToEEPROM[2] = SPIEEPROMaddr & 0xFF;
-      Write_SPI(TSToEEPROM, spibufflength + 3);
+      if(pagebarrier == 0)
+	{
+	  Write_SPI(TSToEEPROM, spibufflength + 3);
+	}
+      /* if at the barrier divide date and time */
+      else
+	{
+	  Write_SPI(TSToEEPROM, 4 + 3);
+	  /* Wait till succesful write */
+	  ConfigureLPTIM1();
+	  do
+	    {
+	      StartLPTIM1(35);
+	      Configure_Lpwr(ModeSTOP);
+	      // Read Status Reg
+	      ToEEPROM[0] = RDSR;
+	      Write_SPI(ToEEPROM, 2);
+	    }
+	  while (ToEEPROM[1] > 0);
+	  DeconfigureLPTIM1();
+	  TSToEEPROM[0] = WREN;
+	  Write_SPI(TSToEEPROM, 1);
+	  TSToEEPROM[0] = WRITE;
+	  TSToEEPROM[1] = ((SPIEEPROMaddr + 4) >> 8) & 0xFF;
+	  TSToEEPROM[2] = (SPIEEPROMaddr + 4) & 0xFF;
+	  TSToEEPROM[3] = 0x4;
+	  TSToEEPROM[4] = TSToEEPROM[8];
+	  TSToEEPROM[5] = TSToEEPROM[9];
+	  TSToEEPROM[6] = TSToEEPROM[10];
+	  Write_SPI(TSToEEPROM, 4 + 3);
+	}
       /* Checque SPI EEPROM address valid? */
       SPIEEPROMaddr += spibufflength;
       RTC->BKP0R = (RTC->BKP0R & ~0xFFFF) | SPIEEPROMaddr;

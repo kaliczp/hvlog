@@ -32,6 +32,7 @@
 #define WEL              0b00000010 /* Write enable latch */
 #define TO_EPR_LENGTH    7
 #define TSTO_EPR_LENGTH    11
+#define SPI_EPR_PG_SUB1  127        /* SPI EEPROM page size in bytes - 1 */
 
 /* Lowpower mode macros */
 #define ModeSleep             0x0
