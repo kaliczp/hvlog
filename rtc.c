@@ -75,14 +75,15 @@ void Configure_RTC_Func(void)
   RTC->WPR = 0xFE; /* (6) */
   RTC->WPR = 0x64; /* (6) */
   /* (7a) Tamper configuration:
-     - Disable precharge (PU)
-     - RTCCLK/256 tamper sampling frequency
+     - Tamper activated after 2 samples (precharged 1 RTCCLOCK TAMPPRCH)
+       TAMP2TRG = 0, low input triggers
+     - RTCCLK/1024 tamper sampling frequency (32 Hz at 32768 Hz RTC clock)
      - Activate time stamp on tamper detection even if TSE=0
-     - input rising edge trigger detection on RTC_TAMP2 (PA0)
+     - enable input low level detection on RTC_TAMP2 (PA0)
      - No erase backup registers */
   /* (7b) Tamper interrupt enable */
 
-  RTC->TAMPCR = RTC_TAMPCR_TAMPPUDIS | RTC_TAMPCR_TAMPFREQ | RTC_TAMPCR_TAMPTS | RTC_TAMPCR_TAMP2E | RTC_TAMPCR_TAMP2NOERASE; /* (7a) */
+  RTC->TAMPCR = RTC_TAMPCR_TAMPFLT_0 | RTC_TAMPCR_TAMPFREQ_2 | RTC_TAMPCR_TAMPFREQ_0 | RTC_TAMPCR_TAMPTS | RTC_TAMPCR_TAMP2E | RTC_TAMPCR_TAMP2NOERASE; /* (7a) */
   RTC->TAMPCR |= RTC_TAMPCR_TAMPIE; /* (7b) */
   
   /* Configure exti for RTC IT */
@@ -145,6 +146,9 @@ void RTC_ReEnableTamperIRQ(void)
       EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
       NVIC_ClearPendingIRQ(RTC_IRQn);
     }
+  RTC->ISR &= ~(RTC_ISR_TSF); /* clear timestamp flag */
+  RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
+  RTC->ISR &= ~(RTC_ISR_TAMP2F); /* clear tamper flag */
   NVIC_EnableIRQ(RTC_IRQn);
 }
 
@@ -170,6 +174,10 @@ void RTC_IRQHandler(void)
       RTC->ISR &= ~RTC_ISR_ALRAF; /* clear flag */
       EXTI->PR |= EXTI_PR_PR17; /* clear exti line 17 flag */
       MyStateRegister |= DAILY_ALARM;
+    }
+  else if(((RTC->ISR & (RTC_ISR_TSOVF)) == (RTC_ISR_TSOVF)))
+    {
+      RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
     }
   else
     {

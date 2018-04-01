@@ -31,12 +31,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
 void Configure_GPIOB_Test(void)
 {
+  volatile uint32_t tmpreg;
   /* Enable PB7 input */
   /* (1) Enable GPIOB clock */
+  /* (1b) Some delay based on errata sheet */
   /* (2) Set PB7 input mode */
   /* (3) Enable pull-down */
 
   RCC->IOPENR |= RCC_IOPENR_GPIOBEN; /* (1) */
+  tmpreg = RCC->IOPENR; /* (1b) */
+  (void)tmpreg; /* (1b) */
   GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE7)); /* (2) */
   GPIOB->PUPDR = (GPIOB->PUPDR & ~(GPIO_PUPDR_PUPD7)) | (GPIO_PUPDR_PUPD7_1); /* (3) */
 }
