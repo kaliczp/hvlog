@@ -27,8 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 volatile uint32_t MyStateRegister;
 
 /* Timestamp values */
-volatile uint32_t TimestampTime;
-volatile uint32_t TimestampDate;
+volatile uint32_t TimeRegister;
+volatile uint32_t DateRegister;
 
 uint16_t SPIEEPROMaddr;
 uint16_t LastReadSPIEEPROMaddr;
@@ -86,12 +86,12 @@ int main(void)
 		  MyStateRegister &= ~ (SPI_READROM);
 		}
 	      Deconfigure_GPIOB_Test();
-	      if(RTC->BKP2R < TimestampDate)
+	      if(RTC->BKP2R < DateRegister)
 		{
 		  MyStateRegister |= (STORE_TIMESTAMP_DAT | STORE_TIMESTAMP_TIM);
 		}
 	      /* Prevent debouncing, store same time */
-	      else if(RTC->BKP1R < TimestampTime)
+	      else if(RTC->BKP1R < TimeRegister)
 		{
 		  MyStateRegister |= STORE_TIMESTAMP_TIM;
 		}
@@ -99,11 +99,11 @@ int main(void)
 		{
 		  MyStateRegister &= ~ (STORE_TIMESTAMP_TIM);
 		  StoreDateTime();
-		  RTC->BKP1R = TimestampTime;
+		  RTC->BKP1R = TimeRegister;
 		  if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
 		    {
 		      MyStateRegister &= ~STORE_TIMESTAMP_DAT;
-		      RTC->BKP2R = TimestampDate;
+		      RTC->BKP2R = DateRegister;
 		    }
 		}
 	    }
@@ -203,9 +203,9 @@ void StoreDateTime()
     {
       TSToEEPROM[3] = 0x0; // Time flag
     }
-  TSToEEPROM[4] = (TimestampTime >> 16) & 0xFF;
-  TSToEEPROM[5] = (TimestampTime >> 8) & 0xFF;
-  TSToEEPROM[6] = TimestampTime & 0xFF;
+  TSToEEPROM[4] = (TimeRegister >> 16) & 0xFF;
+  TSToEEPROM[5] = (TimeRegister >> 8) & 0xFF;
+  TSToEEPROM[6] = TimeRegister & 0xFF;
   if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
     {
       spibufflength = 8;
@@ -217,9 +217,9 @@ void StoreDateTime()
 	{
 	  TSToEEPROM[7] = 0x40; // Date flag
 	}
-      TSToEEPROM[8] = (TimestampDate >> 16) & 0xFF;
-      TSToEEPROM[9] = (TimestampDate >> 8) & 0xFF;
-      TSToEEPROM[10] = TimestampDate & 0xFF;
+      TSToEEPROM[8] = (DateRegister >> 16) & 0xFF;
+      TSToEEPROM[9] = (DateRegister >> 8) & 0xFF;
+      TSToEEPROM[10] = DateRegister & 0xFF;
       /* Test the page barrier! SPI_EPR_PG_SUB1 page size in bytes */
       /* It uses binary modulo */
       if(((SPIEEPROMaddr + 4) & SPI_EPR_PG_SUB1) == 0)

@@ -43,9 +43,9 @@
 /* Status register to follow state */
 extern volatile uint32_t MyStateRegister;
 
-/* Timestamp values */
-extern volatile uint32_t TimestampTime;
-extern volatile uint32_t TimestampDate;
+/* Time and date global variables */
+extern volatile uint32_t TimeRegister;
+extern volatile uint32_t DateRegister;
 
 extern uint8_t ToEEPROM[TO_EPR_LENGTH];
 extern volatile uint8_t uartsend;
