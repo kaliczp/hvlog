@@ -14,7 +14,7 @@
 #define NOTHING_TODO          0x0
 #define TIMESTAMP_CAPTURED    0x1
 #define DAILY_ALARM           0x2
-#define SPI_SAVEROM           0x4
+#define SHORTER_ALARM         0x4
 #define STORE_TIMESTAMP_DAT   0x8
 #define STORE_TIMESTAMP_TIM   0x10
 #define SPI_READROM           0x20
