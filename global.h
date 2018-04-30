@@ -59,3 +59,4 @@ extern volatile uint32_t DateRegister;
 
 extern uint8_t ToEEPROM[TO_EPR_LENGTH];
 extern volatile uint8_t uartsend;
+extern volatile uint8_t CharToReceive;
