@@ -71,6 +71,6 @@ void Configure_Lpwr(uint8_t LpwrMode)
     }
   else
     {
-      __WFI();
+      __WFE();
     }
 }
