@@ -12,16 +12,26 @@
 
 /* Define states for MyStateRegister */
 #define NOTHING_TODO          0x0
-#define TIMESTAMP_CAPTURED    0x1
-#define DAILY_ALARM           0x2
-#define SHORTER_ALARM         0x4
-#define STORE_TIMESTAMP_DAT   0x8
+#define COUNTER1              0x1
+#define COUNTER2              0x2
+#define COUNTER3              0x4
+#define COUNTER4              0x8
+#define COUNTER_MSK           0xF
 #define STORE_TIMESTAMP_TIM   0x10
-#define SPI_READROM           0x20
+#define STORE_TIMESTAMP_DAT   0x20
 #define UART_SEND             0x40
 #define INIT_SPIREAD          0x80
 #define INIT_UART             0x100
 #define UART_PROGRESS         0x200
+#define DAILY_ALARM           0x400
+#define SPI_READROM           0x800
+#define TIMESTAMP_CAPTURED    0x1000
+#define SHORTER_ALARM         0x2000
+#define CHAR_RECEIVED         0x4000
+#define CHAR_SEND             0x8000
+#define SET_DATE              0x10000
+#define SET_TIME              0x20000
+#define SEND_TIME             0x40000
 
 /* SPI Macros */
 #define WREN             0b00000110 /* 0x06 Write enable */
