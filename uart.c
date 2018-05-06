@@ -59,7 +59,7 @@ void Configure_USART1(void)
   /* GPIO configuration for USART1 signals */
   /* (0) Enable GPIOB clock */
   /* (1) Some delay based on LL */
-  /* (2) Select AF mode (10) on PB6 and PB7*/
+  /* (2) Select AF mode (10) on PB6 (TX) and PB7 (RX) */
   /* push-pull default */
   /* (3) pull-up */
   /* (4) high speed */
@@ -73,7 +73,7 @@ void Configure_USART1(void)
 
   GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE6 | GPIO_MODER_MODE7)) \
     | (GPIO_MODER_MODE6_1 | GPIO_MODER_MODE7_1); /* (2) */
-  /* GPIOB->PUPDR = (GPIOB->PUPDR & ~(GPIO_PUPDR_PUPD6)) | (GPIO_PUPDR_PUPD6_0); /\* (3) *\/ */
+  GPIOB->PUPDR = (GPIOB->PUPDR & ~(GPIO_PUPDR_PUPD6 | GPIO_PUPDR_PUPD7)) | (GPIO_PUPDR_PUPD6_0 | GPIO_PUPDR_PUPD7_0); /* (3) */
   /* GPIOB->OSPEEDR = (GPIOB->OSPEEDR & ~(GPIO_OSPEEDER_OSPEED6)) | (GPIO_OSPEEDER_OSPEED6_1); /\* (4) *\/ */
 
   /* Enable the peripheral clock USART1 */
@@ -81,7 +81,7 @@ void Configure_USART1(void)
 
   /* Configure USART1 */
   /* 2*32768 / 2400 = 27 */;
-  /* (1b) 2400 baud shifted right RM 0377 p.675 */
+  /* (1b) 2400 baud shifted right RM 0377 24.5.4 */
   /* (2a) oversampling by 8, 8 data bit, 1 start bit, 1 stop bit, no
      parity, receive and receive interrupt enabled */
   /* (2b) UART enabled with default values above */
@@ -97,10 +97,20 @@ void Configure_USART1(void)
   NVIC_EnableIRQ(USART1_IRQn); /* (9) */
 }
 
+void SetBaudrate(void)
+{
+  USART1->CR2 |= (USART_CR2_ABRMODE_0 | USART_CR2_ABRMODE_1);
+  USART1->CR2 |= USART_CR2_ABREN; /* (1) */
+  /* Loop until the end of Autobaudrate phase */
+  while((USART1->ISR & USART_ISR_ABRF) != USART_ISR_ABRF)
+    {}
+}
+
 void EnableTransmit_USART1(void)
 {
   /* (3) Enable UART transmitter line */
   /* (4) Wait for idle frame transmission maybe write 0 and 1 in TE */
+  USART1->CR1 &= ~(USART_CR1_TE) ; /* (1) */
   USART1->CR1 |= USART_CR1_TE ; /* (3) */
   while((USART1->ISR & USART_ISR_TC) != USART_ISR_TC) /* (4) */
     {
@@ -113,8 +123,10 @@ void EnableTransmit_USART1(void)
 
 void DisableTransmit_USART1(void)
 {
+  /* (0) disable transmitter interrupt*/
   /* (1) disable transmitter */
   /* (2) wait until TC=1 avoid corrupt last transmission */
+  USART1->CR1 &= ~(USART_CR1_TCIE); /* (0) */
   USART1->CR1 &= ~(USART_CR1_TE) ; /* (1) */
   USART1->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
 }

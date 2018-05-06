@@ -79,7 +79,6 @@ int main(void)
 	      // Test UART connection
 	      if((GPIOB->IDR & (GPIO_IDR_ID7)) == (GPIO_IDR_ID7))
 		{
-		  Configure_USART1();
 		  MyStateRegister |= INIT_UART;
 		}
 	      Deconfigure_GPIOB_Test();
@@ -138,9 +137,14 @@ int main(void)
 		    }
 		  else if(CharToReceive == 113) /* 'q' letter code */
 		    {
-		      MyStateRegister &= ~INIT_UART;
+		      MyStateRegister &= ~READY_UART;
 		      Deconfigure_USART1();
 		    }
+		  else if(CharToReceive == 55) /* 'U' letter code */
+		    {
+		      /* Auto baudrate setting OK */
+		    }
+
 		}
 	    }
 	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && uartsend == 3)
@@ -194,6 +198,13 @@ int main(void)
 	      MyStateRegister |= SPI_READROM;
 	    }
 	  else if((MyStateRegister & (INIT_UART)) == (INIT_UART))
+	    {
+	      MyStateRegister &= ~INIT_UART;
+	      Configure_USART1();
+	      SetBaudrate();
+	      MyStateRegister |= READY_UART;
+	    }
+	  else if((MyStateRegister & (READY_UART)) == (READY_UART))
 	    {
 	      Configure_Lpwr(ModeSleep);
 	    }

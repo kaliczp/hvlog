@@ -21,7 +21,7 @@
 #define STORE_TIMESTAMP_DAT   0x20
 #define UART_SEND             0x40
 #define INIT_SPIREAD          0x80
-#define INIT_UART             0x100
+#define READY_UART            0x100
 #define UART_PROGRESS         0x200
 #define DAILY_ALARM           0x400
 #define SPI_READROM           0x800
@@ -32,6 +32,7 @@
 #define SET_DATE              0x10000
 #define SET_TIME              0x20000
 #define SEND_TIME             0x40000
+#define INIT_UART             0x80000
 
 /* SPI Macros */
 #define WREN             0b00000110 /* 0x06 Write enable */
