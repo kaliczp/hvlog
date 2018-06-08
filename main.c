@@ -232,7 +232,7 @@ void StoreDateTime()
   uint8_t spibufflength = 4;
   uint8_t pagebarrier = 0;
 
-  if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
+  if((MyStateRegister & (INIT_UART)) == (INIT_UART))
     {
       TSToEEPROM[3] = 0x80; // Time flag & during read
     }
@@ -246,7 +246,7 @@ void StoreDateTime()
   if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
     {
       spibufflength = 8;
-      if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
+      if((MyStateRegister & (INIT_UART)) == (INIT_UART))
 	{
 	  TSToEEPROM[7] = 0xC0; // Data flag & during read
 	}
