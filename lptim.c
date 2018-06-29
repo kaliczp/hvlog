@@ -1,8 +1,8 @@
 /*
 **********************************************************************
 * Author    Péter Kalicz
-* Version   V0.1
-* Date      2017-02-11
+* Version   V0.9
+* Date      2018-05-01
 * Brief     LowPower Timer
 
 hvlog -- a simple logger based on STM32L0x1 MCU and an EEPROM

@@ -1,8 +1,8 @@
 /*
 **********************************************************************
 * Author    Péter Kalicz
-* Version   V0.5
-* Date      2017-10-01
+* Version   V0.9
+* Date      2018-05-01
 * Brief     Test the behavior of Makefile and programming environment
 
 hvlog -- a simple logger based on STM32L0x1 MCU and an EEPROM

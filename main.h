@@ -2,7 +2,7 @@
 **********************************************************************
 * Author    Péter Kalicz
 * Version   V0.5
-* Date      2017-10-01
+* Date      2018-05-01
 * Brief     Sensor with interrupt
 
 hvlog -- a simple logger based on STM32L0x1 MCU and an EEPROM
