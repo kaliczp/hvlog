@@ -140,11 +140,6 @@ int main(void)
 		      MyStateRegister &= ~READY_UART;
 		      Deconfigure_USART1();
 		    }
-		  else if(CharToReceive == 55) /* 'U' letter code */
-		    {
-		      /* Auto baudrate setting OK */
-		    }
-
 		}
 	    }
 	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && uartsend == 3)
@@ -201,7 +196,6 @@ int main(void)
 	    {
 	      MyStateRegister &= ~INIT_UART;
 	      Configure_USART1();
-	      SetBaudrate();
 	      MyStateRegister |= READY_UART;
 	    }
 	  else if((MyStateRegister & (READY_UART)) == (READY_UART))

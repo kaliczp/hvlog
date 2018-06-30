@@ -99,15 +99,6 @@ void Configure_USART1(void)
   NVIC_EnableIRQ(USART1_IRQn); /* (9) */
 }
 
-void SetBaudrate(void)
-{
-  USART1->CR2 |= (USART_CR2_ABRMODE_0 | USART_CR2_ABRMODE_1);
-  USART1->CR2 |= USART_CR2_ABREN; /* (1) */
-  /* Loop until the end of Autobaudrate phase */
-  while((USART1->ISR & USART_ISR_ABRF) != USART_ISR_ABRF)
-    {}
-}
-
 void EnableTransmit_USART1(void)
 {
   /* (3) Enable UART transmitter line */
