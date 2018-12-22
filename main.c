@@ -45,7 +45,7 @@ int main(void)
   RCC->APB1ENR |= RCC_APB1ENR_PWREN; // Enable PWR
   Enable_RTC_registers();
   /* If RTC is not set configure and initialise */
-  if((PWR->CSR & PWR_CSR_SBF) == 1)
+  if((PWR->CSR & PWR_CSR_SBF) == (PWR_CSR_SBF))
     {
       PWR->CR |= PWR_CR_CSBF;
       PWR->CR |= PWR_CR_CWUF;
