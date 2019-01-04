@@ -51,6 +51,7 @@ void Configure_Lpwr(uint8_t LpwrMode)
       /* (4b) Disable PWR clock */
       /* (5) WFI */
       /* (6) Clear deep sleep after wake up */
+      /* (7) Disable regulator low-power mode */
       RCC->APB1ENR |= RCC_APB1ENR_PWREN; /* (0) */
       PWR->CR |= PWR_CR_CWUF; /* (1) */
       if(LpwrMode == ModeSTOP)
@@ -71,6 +72,9 @@ void Configure_Lpwr(uint8_t LpwrMode)
     }
   else
     {
+      RCC->APB1ENR |= RCC_APB1ENR_PWREN; /* (0) */
+      PWR->CR &= ~PWR_CR_LPSDSR; /* (7) */
+      RCC->APB1ENR &= ~RCC_APB1ENR_PWREN; /* (4b) */
       __WFE();
     }
 }
