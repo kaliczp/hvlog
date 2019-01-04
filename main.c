@@ -142,7 +142,7 @@ int main(void)
 		    }
 		}
 	    }
-	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && uartsend == 3)
+	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && (uartsend == 3))
 	    {
 	      MyStateRegister &= ~UART_PROGRESS;
 	      DisableTransmit_USART1();
