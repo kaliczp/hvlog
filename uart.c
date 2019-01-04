@@ -82,13 +82,15 @@ void Configure_USART1(void)
   /* Configure USART1 */
   /* 32768 / 1200 = 27 */;
   /* (1b) 2400 baud shifted right RM 0377 24.5.4 */
-  /* (2a) oversampling by 16 no OVER8, 8 data bit, 1 start bit, 1 stop bit, no
+  /* (2a) oversampling by 16 no OVER8, 8 data bit, 1 start bit, no
      parity, receive and receive interrupt enabled */
   /* (2aa) Set ONEBIT to increase the USART tolerance to timing deviations */
+  /* (2ab) 2 stop bits STOP[1:0] = 10 */
   /* (2b) UART enabled with default values above */
   USART1->BRR = 0b11011; /* (1) */
   USART1->CR1 |= USART_CR1_RXNEIE | USART_CR1_RE ; /* (2a) */
   USART1->CR3 |= USART_CR3_ONEBIT; /* (2aa) */
+  USART1->CR2 |= USART_CR2_STOP_1; /* (2ab) */
   USART1->CR1 |= USART_CR1_UE ; /* (2b) */
   /* Configure exti and IT */
   /* (7) unmask line 25 for USART1 */
