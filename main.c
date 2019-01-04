@@ -127,6 +127,7 @@ int main(void)
 		    {
 		      /* Read and send current time, without control*/
 		      TimeRegister = RTC->TR;
+		      ToEEPROM[3] = 0;
 		      ToEEPROM[4] = (TimeRegister >> 16) & 0xFF;
 		      ToEEPROM[5] = (TimeRegister >> 8) & 0xFF;
 		      ToEEPROM[6] = TimeRegister & 0xFF;
