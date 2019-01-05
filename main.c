@@ -1,8 +1,8 @@
 /*
 **********************************************************************
 * Author    Péter Kalicz
-* Version   V0.5
-* Date      2017-10-01
+* Version   V0.9
+* Date      2018-05-01
 * Brief     Test the behavior of Makefile and programming environment
 
 hvlog -- a simple logger based on STM32L0x1 MCU and an EEPROM
@@ -27,15 +27,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 volatile uint32_t MyStateRegister;
 
 /* Timestamp values */
-volatile uint32_t TimestampTime;
-volatile uint32_t TimestampDate;
+volatile uint32_t TimeRegister;
+volatile uint32_t DateRegister;
 
 uint32_t SPIEEPROMaddr;
 uint32_t LastReadSPIEEPROMaddr;
 uint32_t ReadSPIEEPROMaddr;
 
 uint8_t FromLowPower;
-volatile uint8_t uartsend;
+volatile uint8_t uartsend = 4;
+volatile uint8_t CharToReceive;
 uint8_t ToEEPROM[TO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x0, 0x17, 0x03, 0x15};
 
 int main(void)
@@ -44,7 +45,7 @@ int main(void)
   RCC->APB1ENR |= RCC_APB1ENR_PWREN; // Enable PWR
   Enable_RTC_registers();
   /* If RTC is not set configure and initialise */
-  if((PWR->CSR & PWR_CSR_SBF) == 1)
+  if((PWR->CSR & PWR_CSR_SBF) == (PWR_CSR_SBF))
     {
       PWR->CR |= PWR_CR_CSBF;
       PWR->CR |= PWR_CR_CWUF;
@@ -78,20 +79,15 @@ int main(void)
 	      // Test UART connection
 	      if((GPIOB->IDR & (GPIO_IDR_ID7)) == (GPIO_IDR_ID7))
 		{
-		  MyStateRegister |= INIT_SPIREAD;
 		  MyStateRegister |= INIT_UART;
 		}
-	      else
-		{
-		  MyStateRegister &= ~ (SPI_READROM);
-		}
 	      Deconfigure_GPIOB_Test();
-	      if(RTC->BKP2R < TimestampDate)
+	      if(RTC->BKP2R < DateRegister)
 		{
 		  MyStateRegister |= (STORE_TIMESTAMP_DAT | STORE_TIMESTAMP_TIM);
 		}
 	      /* Prevent debouncing, store same time */
-	      else if(RTC->BKP1R < TimestampTime)
+	      else if(RTC->BKP1R < TimeRegister)
 		{
 		  MyStateRegister |= STORE_TIMESTAMP_TIM;
 		}
@@ -99,12 +95,61 @@ int main(void)
 		{
 		  MyStateRegister &= ~ (STORE_TIMESTAMP_TIM);
 		  StoreDateTime();
-		  RTC->BKP1R = TimestampTime;
+		  RTC->BKP1R = TimeRegister;
 		  if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
 		    {
 		      MyStateRegister &= ~STORE_TIMESTAMP_DAT;
-		      RTC->BKP2R = TimestampDate;
+		      RTC->BKP2R = DateRegister;
 		    }
+		}
+	    }
+	  else if((MyStateRegister & (CHAR_RECEIVED)) == (CHAR_RECEIVED))
+	    {
+	      MyStateRegister &= ~CHAR_RECEIVED;
+	      /* Datum or time set */
+	      if((MyStateRegister & (SET_DATE)) == (SET_DATE))
+		{
+		  MyStateRegister++;
+		  ProcessDateTimeSetting();
+		}
+	      else
+		{
+		  /* Command character */
+		  if(CharToReceive == 100) /* 'd' letter code */
+		    {
+		      MyStateRegister |= SET_DATE;
+		    }
+		  else if(CharToReceive == 98) /* 'b' letter code */
+		    {
+		      MyStateRegister |= INIT_SPIREAD;
+		    }
+		  else if(CharToReceive == 97) /* 'a' letter code */
+		    {
+		      /* Read and send current time, without control*/
+		      TimeRegister = RTC->TR;
+		      ToEEPROM[4] = 0;
+		      ToEEPROM[5] = (TimeRegister >> 16) & 0xFF;
+		      ToEEPROM[6] = (TimeRegister >> 8) & 0xFF;
+		      ToEEPROM[7] = TimeRegister & 0xFF;
+		      EnableTransmit_USART2();
+		      MyStateRegister |= UART_PROGRESS;
+		      /* Start UART transmission */
+		      USART2->TDR = ToEEPROM[uartsend++];
+		    }
+		  else if(CharToReceive == 113) /* 'q' letter code */
+		    {
+		      MyStateRegister &= ~READY_UART;
+		      Deconfigure_USART2();
+		    }
+		}
+	    }
+	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && (uartsend == 4))
+	    {
+	      MyStateRegister &= ~UART_PROGRESS;
+	      DisableTransmit_USART2();
+	      if(CharToReceive == 98) /* char b */
+		{
+		  MyStateRegister |= SPI_READROM;
 		}
 	    }
 	  else if((MyStateRegister & (SPI_READROM)) == (SPI_READROM))
@@ -118,31 +163,19 @@ int main(void)
 		  ToEEPROM[3] = ReadSPIEEPROMaddr & 0xFF;
 		  Write_SPI(ToEEPROM, TO_EPR_LENGTH);
 		  ReadSPIEEPROMaddr += 4;
-		  MyStateRegister |= UART_SEND;
+		  MyStateRegister |= UART_PROGRESS;
+		  EnableTransmit_USART2();
+		  /* Start UART transmission */
+		  USART2->TDR = ToEEPROM[uartsend++];
 		}
 	      else
 		{
-		  MyStateRegister &= ~UART_SEND;
-		  MyStateRegister &= ~UART_PROGRESS;
 		  LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr;
 		  RTC->BKP3R =  LastReadSPIEEPROMaddr;
 		  Deconfigure_USART2();
 		  Deconfigure_GPIO_SPI1();
 		  Deconfigure_GPIOB_Test();
 		}
-	    }
-	  else if((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS))
-	    {
-	      /* (1) clear TC flag */
-	      USART2->ICR |= USART_ICR_TCCF; /* (1) */
-	      for(uartsend=4;uartsend < TO_EPR_LENGTH; uartsend ++)
-		{
-		  USART2->TDR = ToEEPROM[uartsend];
-		  while ((USART2->ISR & USART_ISR_TXE) == 0)
-		    {
-		    }
-		}
-	      MyStateRegister |= SPI_READROM;
 	    }
 	  else if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
 	    {
@@ -162,15 +195,15 @@ int main(void)
 	      ReadSPIEEPROMaddr = LastReadSPIEEPROMaddr;
 	      MyStateRegister |= SPI_READROM;
 	    }
-	  else if((MyStateRegister & (UART_SEND)) == (UART_SEND))
+	  else if((MyStateRegister & (INIT_UART)) == (INIT_UART))
 	    {
-	      MyStateRegister &= ~UART_SEND;
-	      if((MyStateRegister & (INIT_UART)) == (INIT_UART))
-		{
-		  MyStateRegister &= ~INIT_UART;
-		  Configure_USART2();
-		  MyStateRegister |= UART_PROGRESS;
-		}
+	      MyStateRegister &= ~INIT_UART;
+	      Configure_USART2();
+	      MyStateRegister |= READY_UART;
+	    }
+	  else if((MyStateRegister & (READY_UART)) == (READY_UART))
+	    {
+	      Configure_Lpwr(ModeSleep);
 	    }
 	  else if((MyStateRegister & (DAILY_ALARM)) == (DAILY_ALARM))
 	    {
@@ -196,7 +229,7 @@ void StoreDateTime()
   uint8_t spibufflength = 4;
   uint8_t pagebarrier = 0;
 
-  if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
+  if((MyStateRegister & (INIT_UART)) == (INIT_UART))
     {
       TSToEEPROM[4] = 0x80; // Time flag & during read
     }
@@ -204,13 +237,13 @@ void StoreDateTime()
     {
       TSToEEPROM[4] = 0x0; // Time flag
     }
-  TSToEEPROM[5] = (TimestampTime >> 16) & 0xFF;
-  TSToEEPROM[6] = (TimestampTime >> 8) & 0xFF;
-  TSToEEPROM[7] = TimestampTime & 0xFF;
+  TSToEEPROM[5] = (TimeRegister >> 16) & 0xFF;
+  TSToEEPROM[6] = (TimeRegister >> 8) & 0xFF;
+  TSToEEPROM[7] = TimeRegister & 0xFF;
   if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
     {
       spibufflength = 8;
-      if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
+      if((MyStateRegister & (INIT_UART)) == (INIT_UART))
 	{
 	  TSToEEPROM[8] = 0xC0; // Data flag & during read
 	}
@@ -218,9 +251,9 @@ void StoreDateTime()
 	{
 	  TSToEEPROM[8] = 0x40; // Date flag
 	}
-      TSToEEPROM[9] = (TimestampDate >> 16) & 0xFF;
-      TSToEEPROM[10] = (TimestampDate >> 8) & 0xFF;
-      TSToEEPROM[11] = TimestampDate & 0xFF;
+      TSToEEPROM[9] = (DateRegister >> 16) & 0xFF;
+      TSToEEPROM[10] = (DateRegister >> 8) & 0xFF;
+      TSToEEPROM[11] = DateRegister & 0xFF;
       /* Test the page barrier! SPI_EPR_PG_SUB1 page size in bytes */
       /* It uses binary modulo */
       if(((SPIEEPROMaddr + 4) & SPI_EPR_PG_SUB1) == 0)
@@ -278,4 +311,58 @@ void StoreDateTime()
       RTC->BKP0R = SPIEEPROMaddr;
     }
   Deconfigure_GPIO_SPI1();
+}
+
+/**
+  * Brief   This function sets RTC clock with USART communication.
+  * Param   None
+  * Retval  None
+  */
+void ProcessDateTimeSetting(void)
+{
+  CharToReceive -= 48;
+  switch(MyStateRegister & COUNTER_MSK)
+  {
+  case 1: /* First char */
+    {
+      TimeRegister = CharToReceive << 20;
+    }
+    break;
+  case 2: /* Second char */
+    {
+      TimeRegister |= CharToReceive << 16;
+    }
+    break;
+  case 3: /* Third char */
+    {
+      TimeRegister |= CharToReceive << 12;
+    }
+    break;
+  case 4: /* Fourth char */
+    {
+      TimeRegister |= CharToReceive << 8;
+    }
+    break;
+  case 5: /* Fifth char */
+    {
+      TimeRegister |= CharToReceive << 4;
+    }
+    break;
+  case 6: /* Sixth char */
+    {
+      TimeRegister |= CharToReceive;
+      /* After the sixth character set value */
+      if((MyStateRegister & (SET_TIME)) == (SET_TIME)) {
+	Init_RTC(TimeRegister, DateRegister);
+	MyStateRegister &= ~SET_DATE;
+	MyStateRegister &= ~SET_TIME;
+      } else {
+	DateRegister = TimeRegister;
+	MyStateRegister |= SET_TIME;
+      }
+      /* Clear Counter */
+      MyStateRegister &= ~COUNTER_MSK;
+    }
+    break;
+  }
 }

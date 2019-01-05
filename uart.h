@@ -1,8 +1,8 @@
 /*
 **********************************************************************
 * @file      uart.h
-* @version   V0.1
-* @date      2017-03-19
+* @version   V0.9
+* @date      2018-05-01
 * @brief     UART header file
 **********************************************************************/
 /* Author    Péter Kalicz
@@ -29,4 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 void Configure_GPIOB_Test(void);
 void Deconfigure_GPIOB_Test(void);
 void Configure_USART2(void);
+void EnableTransmit_USART2(void);
+void DisableTransmit_USART2(void);
 void Deconfigure_USART2(void);

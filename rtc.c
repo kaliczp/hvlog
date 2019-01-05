@@ -1,8 +1,8 @@
 /*
 **********************************************************************
 * Author    Péter Kalicz
-* Version   V0.1
-* Date      2017-02-11
+* Version   V0.9
+* Date      2018-05-01
 * Brief     RTC config
 
 hvlog -- a simple logger based on STM32L0x1 MCU and an EEPROM
@@ -162,8 +162,8 @@ void RTC_IRQHandler(void)
     {
       RTC->ISR &= ~(RTC_ISR_TAMP2F); /* clear tamper flag */
       EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
-      TimestampTime = RTC->TSTR;
-      TimestampDate = RTC->TSDR;
+      TimeRegister = RTC->TSTR;
+      DateRegister = RTC->TSDR;
       RTC->ISR &= ~(RTC_ISR_TSF); /* clear timestamp flag */
       RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
       MyStateRegister |= TIMESTAMP_CAPTURED;
