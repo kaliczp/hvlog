@@ -58,11 +58,12 @@ void StartLPTIM1(uint16_t ValueARR)
 
 void DeconfigureLPTIM1(void)
 {
-  NVIC_DisableIRQ(LPTIM1_IRQn); /* (6) */
-  EXTI->IMR &= ~EXTI_IMR_IM29; /* (5) */
+  NVIC_DisableIRQ(LPTIM1_IRQn); /* (1) */
+  EXTI->IMR &= ~EXTI_IMR_IM29; /* (2) */
   /* (1) Disable LPTimer  */
-  LPTIM1->CR &= ~(LPTIM_CR_ENABLE); /* (1) */
-  RCC->APB1ENR &= ~(RCC_APB1ENR_LPTIM1EN); /* (1b) */
+  LPTIM1->CR &= ~(LPTIM_CR_ENABLE); /* (3) */
+  RCC->APB1SMENR &= ~(RCC_APB1SMENR_LPTIM1SMEN); /* (4) */
+  RCC->APB1ENR &= ~(RCC_APB1ENR_LPTIM1EN); /* (5) */
 }
 
 void LPTIM1_IRQHandler(void)

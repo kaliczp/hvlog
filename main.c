@@ -183,7 +183,7 @@ int main(void)
 	      do
 		{
 		  StartLPTIM1(35);
-		  Configure_Lpwr(ModeSTOP);
+		  Configure_Lpwr(ModeSleep);
 		  // Read Status Reg
 		  ToEEPROM[0] = RDSR;
 		  Write_SPI(ToEEPROM, 2);
@@ -284,7 +284,7 @@ void StoreDateTime()
 	  do
 	    {
 	      StartLPTIM1(35);
-	      Configure_Lpwr(ModeSTOP);
+	      Configure_Lpwr(ModeSleep);
 	      // Read Status Reg
 	      ToEEPROM[0] = RDSR;
 	      Write_SPI(ToEEPROM, 2);
