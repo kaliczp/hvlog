@@ -87,7 +87,7 @@ int main(void)
 		  MyStateRegister |= (STORE_TIMESTAMP_DAT | STORE_TIMESTAMP_TIM);
 		}
 	      /* Prevent debouncing, store same time */
-	      else if(RTC->BKP1R < TimeRegister)
+	      else if(RTC->BKP1R != TimeRegister)
 		{
 		  MyStateRegister |= STORE_TIMESTAMP_TIM;
 		}
