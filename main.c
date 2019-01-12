@@ -30,9 +30,9 @@ volatile uint32_t MyStateRegister;
 volatile uint32_t TimeRegister;
 volatile uint32_t DateRegister;
 
-uint16_t SPIEEPROMaddr;
-uint16_t LastReadSPIEEPROMaddr;
-uint16_t ReadSPIEEPROMaddr;
+uint32_t SPIEEPROMaddr;
+uint32_t LastReadSPIEEPROMaddr;
+uint32_t ReadSPIEEPROMaddr;
 
 uint8_t FromLowPower;
 volatile uint8_t uartsend = 3;
@@ -62,8 +62,8 @@ int main(void)
       Init_RTC(CURR_TIM, CURR_DAT);
     }
   /* Important variables. Loaded from RTC domain */
-  SPIEEPROMaddr =  RTC->BKP0R & 0xFFFF;
-  LastReadSPIEEPROMaddr =  (RTC->BKP0R >> 16) & 0xFFFF;
+  SPIEEPROMaddr =  RTC->BKP0R;
+  LastReadSPIEEPROMaddr =  RTC->BKP3R;
 
   while(1)
     {
@@ -170,7 +170,7 @@ int main(void)
 	      else
 		{
 		  LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr;
-		  RTC->BKP0R =  (RTC->BKP0R & 0x0000FFFF) | ((uint32_t)LastReadSPIEEPROMaddr << 16);
+		  RTC->BKP3R =  LastReadSPIEEPROMaddr;
 		  Deconfigure_GPIO_SPI1();
 		  Deconfigure_GPIOB_Test();
 		}
@@ -304,7 +304,7 @@ void StoreDateTime()
 	}
       /* Checque SPI EEPROM address valid? */
       SPIEEPROMaddr += spibufflength;
-      RTC->BKP0R = (RTC->BKP0R & ~0xFFFF) | SPIEEPROMaddr;
+      RTC->BKP0R = SPIEEPROMaddr;
     }
   Deconfigure_GPIO_SPI1();
 }
