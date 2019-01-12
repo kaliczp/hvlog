@@ -48,8 +48,10 @@ void Configure_GPIOB_Test(void)
 void Deconfigure_GPIOB_Test(void)
 {
   /* (1) Disable pull-down resistor */
+  /* (1a) Select high-impedance analog mode PB7 */
   /* (2) Disable GPIOB clock */
   GPIOB->PUPDR = (GPIOB->PUPDR & ~(GPIO_PUPDR_PUPD7)); /* (1) */
+  GPIOB->MODER |= GPIO_MODER_MODE7; /* (1a) */
   RCC->IOPENR &= ~ (RCC_IOPENR_GPIOBEN); /* (2) */
 }
 

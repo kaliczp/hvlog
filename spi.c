@@ -62,6 +62,10 @@ void Configure_GPIO_SPI1(void)
 
 void Deconfigure_GPIO_SPI1(void)
 {
+  /* Select high-impedance analog in PA15 (1) */
+  /* Select high-impedance analog in PB3 PB4 PB5 (2) */
+  GPIOA->MODER |= GPIO_MODER_MODE15; /* (1) */
+  GPIOB->MODER |= GPIO_MODER_MODE3 | GPIO_MODER_MODE4 | GPIO_MODER_MODE5; /* (2) */
   /* Disable the peripheral clock of GPIOA and GPIOB */
   RCC->IOPENR &= ~ (RCC_IOPENR_GPIOAEN);
   RCC->IOPENR &= ~ (RCC_IOPENR_GPIOBEN);
