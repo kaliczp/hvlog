@@ -138,6 +138,7 @@ void Deconfigure_USART1(void)
   /* EXTI->IMR &= ~EXTI_IMR_IM25; /\* (5) *\/ */
   USART1->CR1 &= ~ (USART_CR1_UE) ; /* (3) */
   USART1->CR1 &= ~(USART_CR1_RE) ; /* (4) */
+  GPIOB->MODER |= (GPIO_MODER_MODE6 | GPIO_MODER_MODE7); /* (4a) */
   RCC->APB2ENR &= ~ (RCC_APB2ENR_USART1EN); /* (4b) */
   RCC->IOPENR &= ~ (RCC_IOPENR_GPIOBEN); /* (5) */
 }
