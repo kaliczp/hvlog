@@ -46,6 +46,7 @@ INCS	+= -I.
 
 LDFLAGS	 = -Wl,--gc-sections,-Map=$(TARGET).map,-lgcc,-lc,-lnosys
 LDFLAGS	+= -ffunction-sections -fdata-sections -T$(MCU_UC)K4Tx_FLASH.ld -L.
+LDFLAGS += --specs=nano.specs
 
 ## Sources
 SRCS := $(wildcard *.c)
