@@ -61,7 +61,7 @@ void Configure_USART2(void)
   /* GPIO configuration for USART2 signals */
   /* (0) Enable GPIOB clock */
   /* (1) Some delay based on LL */
-  /* (2) Select AF mode (10) on PB6 */
+  /* (2) Select AF mode (10) on PB6 (TX) and PB7 (RX) */
   /* push-pull default */
   /* (3) pull-up */
   /* (4) high speed */
@@ -136,6 +136,7 @@ void Deconfigure_USART2(void)
   NVIC_DisableIRQ(USART2_IRQn); /* Disable USART2_IRQn */
   USART2->CR1 &= ~ (USART_CR1_UE) ; /* (3) */
   USART2->CR1 &= ~(USART_CR1_RE) ; /* (4) */
+  GPIOB->MODER |= (GPIO_MODER_MODE6 | GPIO_MODER_MODE7); /* (4a) */
   RCC->APB1ENR &= ~ (RCC_APB1ENR_USART2EN); /* (4b) */
   RCC->IOPENR &= ~ (RCC_IOPENR_GPIOBEN); /* (5) */
 }
