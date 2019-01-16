@@ -119,6 +119,11 @@ int main(void)
 		    {
 		      MyStateRegister |= SET_DATE;
 		    }
+		  else if(CharToReceive == 99) /* 'c' letter code */
+		    {
+		      LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr;
+		      RTC->BKP3R =  LastReadSPIEEPROMaddr;
+		    }
 		  else if(CharToReceive == 98) /* 'b' letter code */
 		    {
 		      MyStateRegister |= INIT_SPIREAD;
@@ -169,10 +174,7 @@ int main(void)
 		}
 	      else
 		{
-		  LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr;
-		  RTC->BKP3R =  LastReadSPIEEPROMaddr;
 		  Deconfigure_GPIO_SPI1();
-		  Deconfigure_GPIOB_Test();
 		}
 	    }
 	  else if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
