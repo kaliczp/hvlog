@@ -55,7 +55,7 @@ int main(void)
     {
       Configure_RTC_Clock();
     }
-  RCC->APB1ENR &=~ RCC_APB1ENR_PWREN; // Disable PWR
+  RCC->APB1ENR &= ~(RCC_APB1ENR_PWREN); // Disable PWR
   if(FromLowPower == 0)
     {
       Configure_RTC_Func();
@@ -73,7 +73,7 @@ int main(void)
 	    /* Prevent overwrite TS with some additional flag check */
 	    {
 	      NVIC_DisableIRQ(RTC_IRQn);
-	      MyStateRegister &= ~TIMESTAMP_CAPTURED;
+	      MyStateRegister &= ~(TIMESTAMP_CAPTURED);
 	      /* Test UART */
 	      Configure_GPIOB_Test();
 	      // Test UART connection
@@ -93,19 +93,19 @@ int main(void)
 		}
 	      if((MyStateRegister & (STORE_TIMESTAMP_TIM)) == (STORE_TIMESTAMP_TIM))
 		{
-		  MyStateRegister &= ~ (STORE_TIMESTAMP_TIM);
+		  MyStateRegister &= ~(STORE_TIMESTAMP_TIM);
 		  StoreDateTime();
 		  RTC->BKP1R = TimeRegister;
 		  if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
 		    {
-		      MyStateRegister &= ~STORE_TIMESTAMP_DAT;
+		      MyStateRegister &= ~(STORE_TIMESTAMP_DAT);
 		      RTC->BKP2R = DateRegister;
 		    }
 		}
 	    }
 	  else if((MyStateRegister & (CHAR_RECEIVED)) == (CHAR_RECEIVED))
 	    {
-	      MyStateRegister &= ~CHAR_RECEIVED;
+	      MyStateRegister &= ~(CHAR_RECEIVED);
 	      /* Datum or time set */
 	      if((MyStateRegister & (SET_DATE)) == (SET_DATE))
 		{
@@ -143,14 +143,14 @@ int main(void)
 		    }
 		  else if(CharToReceive == 113) /* 'q' letter code */
 		    {
-		      MyStateRegister &= ~READY_UART;
+		      MyStateRegister &= ~(READY_UART);
 		      Deconfigure_USART2();
 		    }
 		}
 	    }
 	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && (uartsend == 4))
 	    {
-	      MyStateRegister &= ~UART_PROGRESS;
+	      MyStateRegister &= ~(UART_PROGRESS);
 	      DisableTransmit_USART2();
 	      if(CharToReceive == 98) /* char b */
 		{
@@ -159,7 +159,7 @@ int main(void)
 	    }
 	  else if((MyStateRegister & (SPI_READROM)) == (SPI_READROM))
 	    {
-	      MyStateRegister &= ~SPI_READROM;
+	      MyStateRegister &= ~(SPI_READROM);
 	      if(ReadSPIEEPROMaddr < SPIEEPROMaddr)
 		{
 		  ToEEPROM[0] = READ;
@@ -198,7 +198,7 @@ int main(void)
 	    }
 	  else if((MyStateRegister & (INIT_UART)) == (INIT_UART))
 	    {
-	      MyStateRegister &= ~INIT_UART;
+	      MyStateRegister &= ~(INIT_UART);
 	      Configure_USART2();
 	      MyStateRegister |= READY_UART;
 	    }
@@ -208,7 +208,7 @@ int main(void)
 	    }
 	  else if((MyStateRegister & (DAILY_ALARM)) == (DAILY_ALARM))
 	    {
-	      MyStateRegister &= ~DAILY_ALARM;
+	      MyStateRegister &= ~(DAILY_ALARM);
 	      // Write internal EEPROM with SPI EEPROM pointer and date
 	    }
 	  else
@@ -355,14 +355,14 @@ void ProcessDateTimeSetting(void)
       /* After the sixth character set value */
       if((MyStateRegister & (SET_TIME)) == (SET_TIME)) {
 	Init_RTC(TimeRegister, DateRegister);
-	MyStateRegister &= ~SET_DATE;
-	MyStateRegister &= ~SET_TIME;
+	MyStateRegister &= ~(SET_DATE);
+	MyStateRegister &= ~(SET_TIME);
       } else {
 	DateRegister = TimeRegister;
 	MyStateRegister |= SET_TIME;
       }
       /* Clear Counter */
-      MyStateRegister &= ~COUNTER_MSK;
+      MyStateRegister &= ~(COUNTER_MSK);
     }
     break;
   }

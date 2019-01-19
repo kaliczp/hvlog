@@ -67,8 +67,8 @@ void Deconfigure_GPIO_SPI1(void)
   GPIOA->MODER |= GPIO_MODER_MODE15; /* (1) */
   GPIOB->MODER |= GPIO_MODER_MODE3 | GPIO_MODER_MODE4 | GPIO_MODER_MODE5; /* (2) */
   /* Disable the peripheral clock of GPIOA and GPIOB */
-  RCC->IOPENR &= ~ (RCC_IOPENR_GPIOAEN);
-  RCC->IOPENR &= ~ (RCC_IOPENR_GPIOBEN);
+  RCC->IOPENR &= ~(RCC_IOPENR_GPIOAEN);
+  RCC->IOPENR &= ~(RCC_IOPENR_GPIOBEN);
 
 }
 
@@ -111,13 +111,13 @@ void Deactivate_SPI1(void)
     {
     }
   /* Disable SPI1 */
-  SPI1->CR1 &= ~SPI_CR1_SPE;
+  SPI1->CR1 &= ~(SPI_CR1_SPE);
 }
 
 void Deconfigure_SPI1(void)
 {
   /* Disable SPI1 periperal clock */
-  RCC->APB2ENR &= ~RCC_APB2ENR_SPI1EN;
+  RCC->APB2ENR &= ~(RCC_APB2ENR_SPI1EN);
 }
 
 void Write_SPI(uint8_t *buff, uint8_t length)

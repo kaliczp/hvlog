@@ -57,7 +57,7 @@ void Configure_Lpwr(uint8_t LpwrMode)
       if(LpwrMode == ModeSTOP)
 	{
 	  PWR->CR |= (PWR_CR_LPSDSR | PWR_CR_ULP | PWR_CR_FWU); /* (2) */
-	  PWR->CR &= ~ (PWR_CR_PDDS); /* (3a) */
+	  PWR->CR &= ~(PWR_CR_PDDS); /* (3a) */
 	}
       else
 	{
@@ -66,15 +66,15 @@ void Configure_Lpwr(uint8_t LpwrMode)
 	  PWR->CR |= PWR_CR_PDDS;  /* (3b) */
 	}
       SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; /* (4) */
-      RCC->APB1ENR &= ~RCC_APB1ENR_PWREN; /* (4b) */
+      RCC->APB1ENR &= ~(RCC_APB1ENR_PWREN); /* (4b) */
       __WFI(); /* (5) */
-      SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk; /* (6) */
+      SCB->SCR &= ~(SCB_SCR_SLEEPDEEP_Msk); /* (6) */
     }
   else
     {
       RCC->APB1ENR |= RCC_APB1ENR_PWREN; /* (0) */
-      PWR->CR &= ~PWR_CR_LPSDSR; /* (7) */
-      RCC->APB1ENR &= ~RCC_APB1ENR_PWREN; /* (4b) */
+      PWR->CR &= ~(PWR_CR_LPSDSR); /* (7) */
+      RCC->APB1ENR &= ~(RCC_APB1ENR_PWREN); /* (4b) */
       __WFE();
     }
 }
