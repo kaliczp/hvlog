@@ -52,7 +52,7 @@ void Deconfigure_GPIOB_Test(void)
   /* (2) Disable GPIOB clock */
   GPIOB->PUPDR = (GPIOB->PUPDR & ~(GPIO_PUPDR_PUPD7)); /* (1) */
   GPIOB->MODER |= GPIO_MODER_MODE7; /* (1a) */
-  RCC->IOPENR &= ~ (RCC_IOPENR_GPIOBEN); /* (2) */
+  RCC->IOPENR &= ~(RCC_IOPENR_GPIOBEN); /* (2) */
 }
 
 void Configure_USART1(void)
@@ -107,7 +107,7 @@ void EnableTransmit_USART1(void)
 {
   /* (3) Enable UART transmitter line */
   /* (4) Wait for idle frame transmission maybe write 0 and 1 in TE */
-  USART1->CR1 &= ~(USART_CR1_TE) ; /* (1) */
+  USART1->CR1 &= ~(USART_CR1_TE); /* (1) */
   USART1->CR1 |= USART_CR1_TE ; /* (3) */
   while((USART1->ISR & USART_ISR_TC) != USART_ISR_TC) /* (4) */
     {
@@ -124,7 +124,7 @@ void DisableTransmit_USART1(void)
   /* (1) disable transmitter */
   /* (2) wait until TC=1 avoid corrupt last transmission */
   USART1->CR1 &= ~(USART_CR1_TCIE); /* (0) */
-  USART1->CR1 &= ~(USART_CR1_TE) ; /* (1) */
+  USART1->CR1 &= ~(USART_CR1_TE); /* (1) */
   USART1->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
 }
 
@@ -135,12 +135,12 @@ void Deconfigure_USART1(void)
   /* (4) Disable USART1 clock */
   /* (5) Disable GPIOB clock */
   NVIC_DisableIRQ(USART1_IRQn); /* Disable USART1_IRQn */
-  /* EXTI->IMR &= ~EXTI_IMR_IM25; /\* (5) *\/ */
-  USART1->CR1 &= ~ (USART_CR1_UE) ; /* (3) */
-  USART1->CR1 &= ~(USART_CR1_RE) ; /* (4) */
+  /* EXTI->IMR &= ~(EXTI_IMR_IM25); /\* (5) *\/ */
+  USART1->CR1 &= ~(USART_CR1_UE); /* (3) */
+  USART1->CR1 &= ~(USART_CR1_RE); /* (4) */
   GPIOB->MODER |= (GPIO_MODER_MODE6 | GPIO_MODER_MODE7); /* (4a) */
-  RCC->APB2ENR &= ~ (RCC_APB2ENR_USART1EN); /* (4b) */
-  RCC->IOPENR &= ~ (RCC_IOPENR_GPIOBEN); /* (5) */
+  RCC->APB2ENR &= ~(RCC_APB2ENR_USART1EN); /* (4b) */
+  RCC->IOPENR &= ~(RCC_IOPENR_GPIOBEN); /* (5) */
 }
 
 /**
