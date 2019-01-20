@@ -143,6 +143,8 @@ int main(void)
 		      EnableTransmit_USART2();
 		      /* Start UART transmission */
 		      USART2->TDR = ToEEPROM[uartsend++];
+		      /* Enable TXE interrupt */
+		      USART2->CR1 |= USART_CR1_TXEIE;
 		    }
 		  else if(CharToReceive == 113) /* 'q' letter code */
 		    {
@@ -175,6 +177,8 @@ int main(void)
 		  EnableTransmit_USART2();
 		  /* Start UART transmission */
 		  USART2->TDR = ToEEPROM[uartsend++];
+		  /* Enable TXE interrupt */
+		  USART2->CR1 |= USART_CR1_TXEIE;
 		}
 	      else
 		{
