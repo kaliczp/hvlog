@@ -126,7 +126,10 @@ int main(void)
 		    }
 		  else if(CharToReceive == 98) /* 'b' letter code */
 		    {
-		      MyStateRegister |= INIT_SPIREAD;
+		      if(SPIEEPROMaddr > LastReadSPIEEPROMaddr)
+			{
+			  MyStateRegister |= INIT_SPIREAD;
+			}
 		    }
 		  else if(CharToReceive == 97) /* 'a' letter code */
 		    {
@@ -136,8 +139,8 @@ int main(void)
 		      ToEEPROM[4] = (TimeRegister >> 16) & 0xFF;
 		      ToEEPROM[5] = (TimeRegister >> 8) & 0xFF;
 		      ToEEPROM[6] = TimeRegister & 0xFF;
-		      EnableTransmit_USART1();
 		      MyStateRegister |= UART_PROGRESS;
+		      EnableTransmit_USART1();
 		      /* Start UART transmission */
 		      USART1->TDR = ToEEPROM[uartsend++];
 		    }
