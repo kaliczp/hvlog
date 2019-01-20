@@ -114,10 +114,6 @@ void EnableTransmit_USART1(void)
   while((USART1->ISR & USART_ISR_TEACK) != USART_ISR_TEACK) /* (5) */
     {
     }
-  /* (5) Clear TC flag */
-  /* (6) Enable TC interrupt */
-  USART1->ICR |= USART_ICR_TCCF; /* (5) */
-  USART1->CR1 |= USART_CR1_TCIE; /* (6) */
 }
 
 void DisableTransmit_USART1(void)
@@ -165,11 +161,20 @@ void USART1_IRQHandler(void)
       USART1->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
       /* Activate transmit disable flag */
     }
-    else
+  }
+  else if((USART1->ISR & USART_ISR_TXE) == USART_ISR_TXE)
+  {
+    if(uartsend >= 6)
     {
-      /* clear transfer complete flag and fill TDR with a new char */
-      USART1->TDR = ToEEPROM [uartsend++];
+      /* (1) Disable TX register Empty interrupt */
+      /* (2) Clear TC flag */
+      /* (3) Enable TC interrupt */
+      USART1->CR1 &= ~(USART_CR1_TXEIE); /* (1) */
+      USART1->ICR |= USART_ICR_TCCF; /* (2) */
+      USART1->CR1 |= USART_CR1_TCIE; /* (3) */
     }
+    /* Fill TDR with a new data and clear transmit register empty flag */
+    USART1->TDR = ToEEPROM[uartsend++];
   }
   else
   {
