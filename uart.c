@@ -71,7 +71,7 @@ void Configure_USART1(void)
   (void)tmpreg; /* (1) */
 
   /* Select LSE as USART1 clock source 11 */
-  RCC->CCIPR |= RCC_CCIPR_USART1SEL;
+  /* RCC->CCIPR |= RCC_CCIPR_USART1SEL; */
 
   GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE6 | GPIO_MODER_MODE7)) \
     | (GPIO_MODER_MODE6_1 | GPIO_MODER_MODE7_1); /* (2) */
@@ -82,14 +82,14 @@ void Configure_USART1(void)
   RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
 
   /* Configure USART1 */
-  /* 32768 / 1200 = 27 */;
-  /* (1b) 2400 baud shifted right RM 0377 24.5.4 */
+  /* 2097152 / 1200 = 1748 */;
+  /* (1b) 1200 baud RM 0377 24.5.4 */
   /* (2a) oversampling by 16 no OVER8, 8 data bit, 1 start bit, no
      parity, receive and receive interrupt enabled */
   /* (2aa) Set ONEBIT to increase the USART tolerance to timing deviations */
   /* (2ab) 2 stop bits STOP[1:0] = 10 */
   /* (2b) UART enabled with default values above */
-  USART1->BRR = 0b11011; /* (1) */
+  USART1->BRR = 0b11011010100; /* (1) */
   USART1->CR1 |= USART_CR1_RXNEIE | USART_CR1_RE ; /* (2a) */
   USART1->CR3 |= USART_CR3_ONEBIT; /* (2aa) */
   USART1->CR2 |= USART_CR2_STOP_1; /* (2ab) */
@@ -137,7 +137,7 @@ void Deconfigure_USART1(void)
   NVIC_DisableIRQ(USART1_IRQn); /* Disable USART1_IRQn */
   /* EXTI->IMR &= ~(EXTI_IMR_IM25); /\* (5) *\/ */
   USART1->CR1 &= ~(USART_CR1_UE); /* (3) */
-  USART1->CR1 &= ~(USART_CR1_RE); /* (4) */
+  USART1->CR1 &= ~(USART_CR1_RE | USART_CR1_RXNEIE); /* (4) */
   GPIOB->MODER |= (GPIO_MODER_MODE6 | GPIO_MODER_MODE7); /* (4a) */
   RCC->APB2ENR &= ~(RCC_APB2ENR_USART1EN); /* (4b) */
   RCC->IOPENR &= ~(RCC_IOPENR_GPIOBEN); /* (5) */
