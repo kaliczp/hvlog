@@ -84,12 +84,12 @@ void Configure_USART2(void)
   /* 2097152 / 1200 = 1748 */
   /* (1b) 1200 baud RM 0377 24.5.4 */
   /* (2a) oversampling by 16 no OVER8, 8 data bit, 1 start bit, no
-     parity, receive and receive interrupt enabled */
+     parity, receive and receive interrupt enabled and transmit */
   /* (2aa) Set ONEBIT to increase the USART tolerance to timing deviations */
   /* (2ab) 2 stop bits STOP[1:0] = 10 */
   /* (2b) UART enabled with default values above */
   USART2->BRR = 0b11011010100; /* (1) */
-  USART2->CR1 |= USART_CR1_RXNEIE | USART_CR1_RE ; /* (2a) */
+  USART2->CR1 |= USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_TE; /* (2a) */
   USART2->CR3 |= USART_CR3_ONEBIT; /* (2aa) */
   USART2->CR2 |= USART_CR2_STOP_1; /* (2ab) */
   USART2->CR1 |= USART_CR1_UE ; /* (2b) */
@@ -100,15 +100,17 @@ void Configure_USART2(void)
   /* EXTI->IMR |= EXTI_IMR_IM25; /\* (7) *\/  */
   NVIC_SetPriority(USART2_IRQn, 0); /* (8) */
   NVIC_EnableIRQ(USART2_IRQn); /* (9) */
+  /* Disable transmit */
+  USART2->CR1 &= ~(USART_CR1_TE); /* (10) */
 }
 
 void EnableTransmit_USART2(void)
 {
   /* (3) Enable UART transmitter line */
-  /* (4) Wait for idle frame transmission maybe write 0 and 1 in TE */
-  USART2->CR1 &= ~(USART_CR1_TE); /* (1) */
-  USART2->CR1 |= USART_CR1_TE ; /* (3) */
-  while((USART2->ISR & USART_ISR_TC) != USART_ISR_TC) /* (4) */
+  /* (5) poll the TEACK bit in the USART_ISR register */
+  /* Wait for idle frame transmission maybe write 0 and 1 in TE */
+  USART2->CR1 |= USART_CR1_TE; /* (3) */
+  while((USART2->ISR & USART_ISR_TEACK) != USART_ISR_TEACK) /* (5) */
     {
     }
   /* (5) Clear TC flag */
