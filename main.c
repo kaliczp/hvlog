@@ -80,6 +80,7 @@ int main(void)
 	      if((GPIOB->IDR & (GPIO_IDR_ID7)) == (GPIO_IDR_ID7))
 		{
 		  MyStateRegister |= INIT_UART;
+		  MyStateRegister |= STORE_TIMESTAMP_DAT;
 		}
 	      Deconfigure_GPIOB_Test();
 	      if(RTC->BKP2R < DateRegister)
@@ -121,7 +122,9 @@ int main(void)
 		    }
 		  else if(CharToReceive == 99) /* 'c' letter code */
 		    {
-		      LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr;
+		      /* Keep readout date and time as the first record 
+			 of next readout */
+		      LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr - 8;
 		      RTC->BKP3R =  LastReadSPIEEPROMaddr;
 		    }
 		  else if(CharToReceive == 98) /* 'b' letter code */
