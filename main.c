@@ -29,6 +29,8 @@ volatile uint32_t MyStateRegister;
 /* Timestamp values */
 volatile uint32_t TimeRegister;
 volatile uint32_t DateRegister;
+const uint32_t FWTime = CURR_TIM;
+const uint32_t FWDate = CURR_DAT;
 
 uint32_t SPIEEPROMaddr;
 uint32_t LastReadSPIEEPROMaddr;
@@ -59,7 +61,7 @@ int main(void)
   if(FromLowPower == 0)
     {
       Configure_RTC_Func();
-      Init_RTC(CURR_TIM, CURR_DAT);
+      Init_RTC(FWTime, FWDate);
     }
   /* Important variables. Loaded from RTC domain */
   SPIEEPROMaddr =  RTC->BKP0R;
@@ -129,10 +131,18 @@ int main(void)
 		    }
 		  else if(CharToReceive == 98) /* 'b' letter code */
 		    {
-		      if(SPIEEPROMaddr > LastReadSPIEEPROMaddr)
-			{
-			  MyStateRegister |= INIT_SPIREAD;
-			}
+		      /* Send firmware date and after the stored timestamps */
+		      /* if the send of timestamp finished */
+		      ToEEPROM[4] = 0xC0;
+		      ToEEPROM[5] = (FWDate >> 16) & 0xFF;
+		      ToEEPROM[6] = (FWDate >> 8) & 0xFF;
+		      ToEEPROM[7] = FWDate & 0xFF;
+		      MyStateRegister |= UART_PROGRESS;
+		      EnableTransmit_USART2();
+		      /* Start UART transmission */
+		      USART2->TDR = ToEEPROM[uartsend++];
+		      /* Enable TXE interrupt */
+		      USART2->CR1 |= USART_CR1_TXEIE;
 		    }
 		  else if(CharToReceive == 97) /* 'a' letter code */
 		    {
@@ -162,7 +172,15 @@ int main(void)
 	      DisableTransmit_USART2();
 	      if(CharToReceive == 98) /* char b */
 		{
-		  MyStateRegister |= SPI_READROM;
+		  /* If SPI not initialised fire up */
+		  if((GPIOA->MODER & (GPIO_MODER_MODE15_0)) == (GPIO_MODER_MODE15_0))
+		    {
+		      MyStateRegister |= INIT_SPIREAD;
+		    }
+		  else
+		    {
+		      MyStateRegister |= SPI_READROM;
+		    }
 		}
 	    }
 	  else if((MyStateRegister & (SPI_READROM)) == (SPI_READROM))
