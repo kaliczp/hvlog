@@ -26,6 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 void Configure_Lpwr(uint8_t LpwrMode)
 {
+  /* (0) Enable power module */
+  RCC->APB1ENR |= RCC_APB1ENR_PWREN; /* (0) */
   if(LpwrMode > 0)
     {
 #ifdef DEBUG
@@ -42,7 +44,6 @@ void Configure_Lpwr(uint8_t LpwrMode)
 	  DBGMCU->CR |= DBGMCU_CR_DBG_STANDBY;
 	}
 #endif
-      /* (0) Enable power module */
       /* (1)  Clear the WUF flag after 2 clock cycles */
       /* (2) Regulator in LowPower mode and disable VREFINT and enable fast wake-up */
       /* (3a) Select STOP mode in the PWR_CR register */
@@ -52,7 +53,6 @@ void Configure_Lpwr(uint8_t LpwrMode)
       /* (5) WFI */
       /* (6) Clear deep sleep after wake up */
       /* (7) Disable regulator low-power mode */
-      RCC->APB1ENR |= RCC_APB1ENR_PWREN; /* (0) */
       PWR->CR |= PWR_CR_CWUF; /* (1) */
       if(LpwrMode == ModeSTOP)
 	{
@@ -72,7 +72,6 @@ void Configure_Lpwr(uint8_t LpwrMode)
     }
   else
     {
-      RCC->APB1ENR |= RCC_APB1ENR_PWREN; /* (0) */
       PWR->CR &= ~(PWR_CR_LPSDSR); /* (7) */
       RCC->APB1ENR &= ~(RCC_APB1ENR_PWREN); /* (4b) */
       __WFE();
