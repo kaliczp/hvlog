@@ -45,6 +45,9 @@
 #define TSTO_EPR_LENGTH    11
 #define SPI_EPR_PG_SUB1  127        /* SPI EEPROM page size in bytes - 1 */
 
+#define SPI_IS_STANDALONE     1
+#define SPI_IS_NOT_STANDALONE     0
+
 /* Lowpower mode macros */
 #define ModeSleep             0x0
 #define ModeSTOP              0x1
