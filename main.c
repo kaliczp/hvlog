@@ -185,7 +185,7 @@ int main(void)
 		}
 	      else
 		{
-		  Deconfigure_GPIO_SPI1();
+		  Deconfigure_GPIO_SPI1(SPI_IS_NOT_STANDALONE);
 		}
 	    }
 	  else if((MyStateRegister & (INIT_SPIREAD)) == (INIT_SPIREAD))
@@ -321,7 +321,7 @@ void StoreDateTime()
       SPIEEPROMaddr += spibufflength;
       RTC->BKP0R = SPIEEPROMaddr;
     }
-  Deconfigure_GPIO_SPI1();
+  Deconfigure_GPIO_SPI1(SPI_IS_STANDALONE);
 }
 
 /**
