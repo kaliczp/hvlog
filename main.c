@@ -147,11 +147,13 @@ int main(void)
 		  else if(CharToReceive == 97) /* 'a' letter code */
 		    {
 		      /* Read and send current time, without control*/
+		      ToEEPROM[6] = RTC->SSR & 0xFF;
 		      TimeRegister = RTC->TR;
-		      ToEEPROM[3] = 0;
-		      ToEEPROM[4] = (TimeRegister >> 16) & 0xFF;
-		      ToEEPROM[5] = (TimeRegister >> 8) & 0xFF;
-		      ToEEPROM[6] = TimeRegister & 0xFF;
+		      /* Shadow register is frozen until read DR */
+		      DateRegister = RTC->DR;
+		      ToEEPROM[3] = (TimeRegister >> 16) & 0xFF;
+		      ToEEPROM[4] = (TimeRegister >> 8) & 0xFF;
+		      ToEEPROM[5] = TimeRegister & 0xFF;
 		      MyStateRegister |= UART_PROGRESS;
 		      EnableTransmit_USART1();
 		      /* Start UART transmission */
