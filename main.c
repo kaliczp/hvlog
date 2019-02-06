@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 volatile uint32_t MyStateRegister;
 
 /* Timestamp values */
+volatile uint32_t SubSecondRegister;
 volatile uint32_t TimeRegister;
 volatile uint32_t DateRegister;
 const uint32_t FWTime = CURR_TIM;
@@ -94,6 +95,9 @@ int main(void)
 		{
 		  MyStateRegister |= STORE_TIMESTAMP_TIM;
 		}
+	      /* Join time with subseconds */
+	      TimeRegister = TimeRegister << 8;
+	      TimeRegister |= SubSecondRegister;
 	      if((MyStateRegister & (STORE_TIMESTAMP_TIM)) == (STORE_TIMESTAMP_TIM))
 		{
 		  MyStateRegister &= ~(STORE_TIMESTAMP_TIM);
@@ -260,14 +264,7 @@ void StoreDateTime()
   uint8_t spibufflength = 4;
   uint8_t pagebarrier = 0;
 
-  if((MyStateRegister & (INIT_UART)) == (INIT_UART))
-    {
-      TSToEEPROM[4] = 0x80; // Time flag & during read
-    }
-  else
-    {
-      TSToEEPROM[4] = 0x0; // Time flag
-    }
+  TSToEEPROM[4] = (TimeRegister >> 24) & 0xFF;
   TSToEEPROM[5] = (TimeRegister >> 16) & 0xFF;
   TSToEEPROM[6] = (TimeRegister >> 8) & 0xFF;
   TSToEEPROM[7] = TimeRegister & 0xFF;
@@ -331,7 +328,7 @@ void StoreDateTime()
 	  TSToEEPROM[1] = ((SPIEEPROMaddr + 4) >> 16) & 0xFF;
 	  TSToEEPROM[2] = ((SPIEEPROMaddr + 4) >> 8) & 0xFF;
 	  TSToEEPROM[3] = (SPIEEPROMaddr + 4) & 0xFF;
-	  TSToEEPROM[4] = 0x4;
+	  TSToEEPROM[4] = TSToEEPROM[8];
 	  TSToEEPROM[5] = TSToEEPROM[9];
 	  TSToEEPROM[6] = TSToEEPROM[10];
 	  TSToEEPROM[7] = TSToEEPROM[11];

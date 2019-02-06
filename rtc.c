@@ -162,6 +162,7 @@ void RTC_IRQHandler(void)
     {
       RTC->ISR &= ~(RTC_ISR_TAMP2F); /* clear tamper flag */
       EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
+      SubSecondRegister = RTC->TSSSR;
       TimeRegister = RTC->TSTR;
       DateRegister = RTC->TSDR;
       RTC->ISR &= ~(RTC_ISR_TSF); /* clear timestamp flag */
