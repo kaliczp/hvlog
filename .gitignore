@@ -8,3 +8,4 @@ startup_stm32*.s
 STM32*.ld
 system_stm32*.c
 TAGS
+docs/
