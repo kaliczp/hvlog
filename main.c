@@ -133,6 +133,11 @@ int main(void)
 		      LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr - 8;
 		      RTC->BKP3R =  LastReadSPIEEPROMaddr;
 		    }
+		  else if(CharToReceive == 101) /* 'e' letter code */
+		    {
+		      LastReadSPIEEPROMaddr = 0;
+                      MyStateRegister |= INIT_SPIREAD;
+                    }
 		  else if(CharToReceive == 98) /* 'b' letter code */
 		    {
 		      /* Send firmware date and after the stored timestamps */
@@ -176,7 +181,7 @@ int main(void)
 	    {
 	      MyStateRegister &= ~(UART_PROGRESS);
 	      DisableTransmit_USART2();
-	      if(CharToReceive == 98) /* char b */
+	      if(CharToReceive == 98 || CharToReceive == 101) /* char b or e*/
 		{
 		  /* If SPI not initialised fire up */
 		  if((GPIOA->MODER & (GPIO_MODER_MODE15_0)) == (GPIO_MODER_MODE15_0))
