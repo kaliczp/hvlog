@@ -133,6 +133,11 @@ int main(void)
 		      LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr - 8;
 		      RTC->BKP3R =  LastReadSPIEEPROMaddr;
 		    }
+		  else if(CharToReceive == 101) /* 'e' letter code */
+		    {
+		      LastReadSPIEEPROMaddr = 0;
+                      MyStateRegister |= INIT_SPIREAD;
+                    }
 		  else if(CharToReceive == 98) /* 'b' letter code */
 		    {
 		      /* Send firmware date and after the stored timestamps */
