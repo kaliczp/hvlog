@@ -140,18 +140,7 @@ int main(void)
                     }
 		  else if(CharToReceive == 98) /* 'b' letter code */
 		    {
-		      /* Send firmware date and after the stored timestamps */
-		      /* if the send of timestamp finished */
-		      ToEEPROM[4] = 0xC0;
-		      ToEEPROM[5] = (FWDate >> 16) & 0xFF;
-		      ToEEPROM[6] = (FWDate >> 8) & 0xFF;
-		      ToEEPROM[7] = FWDate & 0xFF;
-		      MyStateRegister |= UART_PROGRESS;
-		      EnableTransmit_USART2();
-		      /* Start UART transmission */
-		      USART2->TDR = ToEEPROM[uartsend++];
-		      /* Enable TXE interrupt */
-		      USART2->CR1 |= USART_CR1_TXEIE;
+                      MyStateRegister |= UART_SEND_HEADER;
 		    }
 		  else if(CharToReceive == 97) /* 'a' letter code */
 		    {
@@ -176,6 +165,39 @@ int main(void)
 		      Deconfigure_USART2();
 		    }
 		}
+	    }
+	  else if(((MyStateRegister & (UART_SEND_HEADER)) == (UART_SEND_HEADER)) && (uartsend == 4))
+	    {
+	      MyStateRegister++;
+	      switch(MyStateRegister & COUNTER_MSK)
+		{
+		case 1: /* Send firmware date */
+		  {
+		    EnableTransmit_USART2();
+		    ToEEPROM[4] = 0xC0;
+		    ToEEPROM[5] = (FWDate >> 16) & 0xFF;
+		    ToEEPROM[6] = (FWDate >> 8) & 0xFF;
+		    ToEEPROM[7] = FWDate & 0xFF;
+		  }
+		  break;
+		case 2: /* Send firmware time */
+		  {
+		    /* Clear Counter */
+		    MyStateRegister &= ~(COUNTER_MSK);
+		    /* Send of timestamp finished */
+		    MyStateRegister &= ~(UART_SEND_HEADER);
+		    ToEEPROM[4] = (FWTime >> 16) & 0xFF;
+		    ToEEPROM[5] = (FWTime >> 8) & 0xFF;
+		    ToEEPROM[6] = FWTime & 0xFF;
+		    ToEEPROM[7] = 0;
+		    MyStateRegister |= UART_PROGRESS;
+		  }
+		  break;
+		}
+	      /* Start UART transmission */
+	      USART2->TDR = ToEEPROM[uartsend++];
+	      /* Enable TXE interrupt */
+	      USART2->CR1 |= USART_CR1_TXEIE;
 	    }
 	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && (uartsend == 4))
 	    {
