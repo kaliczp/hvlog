@@ -72,8 +72,7 @@ void Configure_RTC_Func(void)
     }
   RTC->ALRMAR = RTC_ALRMAR_MSK4; /* (4) */
   RTC->CR = RTC_CR_ALRAIE | RTC_CR_ALRAE; /* (5) */
-  RTC->WPR = 0xFE; /* (6) */
-  RTC->WPR = 0x64; /* (6) */
+  RTC->WPR = 0xFF; /* (6) */
   /* (7a) Tamper configuration:
      - Tamper activated after 2 samples (precharged 1 RTCCLOCK TAMPPRCH)
        TAMP2TRG = 0, low input triggers
@@ -133,8 +132,7 @@ void Init_RTC(uint32_t Time, uint32_t Date)
   RTC->TR = Time; /* (5) */
   RTC->DR = Date; /* (5a) */
   RTC->ISR &= ~(RTC_ISR_INIT); /* (6) */
-  RTC->WPR = 0xFE; /* (7) */
-  RTC->WPR = 0x64; /* (7) */
+  RTC->WPR = 0xFF; /* (7) */
 }
 
 void RTC_ReEnableTamperIRQ(void)
