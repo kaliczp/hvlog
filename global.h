@@ -19,7 +19,7 @@
 #define COUNTER_MSK           0xF
 #define STORE_TIMESTAMP_TIM   0x10
 #define STORE_TIMESTAMP_DAT   0x20
-#define UART_SEND             0x40
+#define UART_SEND_HEADER      0x40
 #define INIT_SPIREAD          0x80
 #define READY_UART            0x100
 #define UART_PROGRESS         0x200
