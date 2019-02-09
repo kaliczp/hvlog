@@ -331,12 +331,13 @@ void StoreDateTime()
       TSToEEPROM[3] = SPIEEPROMaddr & 0xFF;
       if(pagebarrier == 0)
 	{
-	  Write_SPI(TSToEEPROM, spibufflength + 4);
+	  Write_SPI(TSToEEPROM, TSTO_EPR_LENGTH);
 	}
       /* if at the barrier divide date and time */
+      /* Only TO_EPR_LENGHT wiht 4 byte data */
       else
 	{
-	  Write_SPI(TSToEEPROM, 4 + 4);
+	  Write_SPI(TSToEEPROM, TO_EPR_LENGTH);
 	  /* Wait till succesful write */
 	  ConfigureLPTIM1();
 	  do
@@ -359,7 +360,7 @@ void StoreDateTime()
 	  TSToEEPROM[FIRST_DATA + 1] = TSToEEPROM[FIRST_DATA + 5];
 	  TSToEEPROM[FIRST_DATA + 2] = TSToEEPROM[FIRST_DATA + 6];
 	  TSToEEPROM[FIRST_DATA + 3] = TSToEEPROM[FIRST_DATA + 7];
-	  Write_SPI(TSToEEPROM, 4 + 4);
+	  Write_SPI(TSToEEPROM, TO_EPR_LENGTH);
 	}
       /* Checque SPI EEPROM address valid? */
       SPIEEPROMaddr += spibufflength;
