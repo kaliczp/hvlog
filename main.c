@@ -136,7 +136,7 @@ int main(void)
 		  else if(CharToReceive == 101) /* 'e' letter code */
 		    {
 		      LastReadSPIEEPROMaddr = 0;
-                      MyStateRegister |= INIT_SPIREAD;
+                      MyStateRegister |= UART_SEND_HEADER;
                     }
 		  else if(CharToReceive == 98) /* 'b' letter code */
 		    {
@@ -168,6 +168,7 @@ int main(void)
 	    }
 	  else if(((MyStateRegister & (UART_SEND_HEADER)) == (UART_SEND_HEADER)) && (uartsend == FIRST_DATA))
 	    {
+	      /* Send header with compilation date-time and chip UID */
 	      MyStateRegister++;
 	      switch(MyStateRegister & COUNTER_MSK)
 		{
@@ -182,14 +183,51 @@ int main(void)
 		  break;
 		case 2: /* Send firmware time */
 		  {
-		    /* Clear Counter */
-		    MyStateRegister &= ~(COUNTER_MSK);
 		    /* Send of timestamp finished */
-		    MyStateRegister &= ~(UART_SEND_HEADER);
 		    ToEEPROM[FIRST_DATA] = (FWTime >> 16) & 0xFF;
 		    ToEEPROM[FIRST_DATA + 1] = (FWTime >> 8) & 0xFF;
 		    ToEEPROM[FIRST_DATA + 2] = FWTime & 0xFF;
 		    ToEEPROM[FIRST_DATA + 3] = 0;
+		  }
+		  break;
+		case 3: /* Send UID first word */
+		  {
+		    /* Wafer number  RM0377 28.2*/
+		    ToEEPROM[FIRST_DATA] = (*((volatile uint8_t *)(UID_BASE + 0x03)));
+		    /* LOT number 95:72 */
+		    ToEEPROM[FIRST_DATA + 1] = (*((volatile uint8_t *)(UID_BASE + 0x17)));
+		    ToEEPROM[FIRST_DATA + 2] = (*((volatile uint8_t *)(UID_BASE + 0x16)));
+		    ToEEPROM[FIRST_DATA + 3] = (*((volatile uint8_t *)(UID_BASE + 0x15)));
+		  }
+		  break;
+		case 4: /* Send UID second word */
+		  {
+		    /* LOT number 71:40 */
+		    ToEEPROM[FIRST_DATA] = (*((volatile uint8_t *)(UID_BASE + 0x14)));
+		    ToEEPROM[FIRST_DATA + 1] = (*((volatile uint8_t *)(UID_BASE + 0x07)));
+		    ToEEPROM[FIRST_DATA + 2] = (*((volatile uint8_t *)(UID_BASE + 0x06)));
+		    ToEEPROM[FIRST_DATA + 3] = (*((volatile uint8_t *)(UID_BASE + 0x05)));
+		  }
+		  break;
+		case 5: /* Send UID third word */
+		  {
+		    /* LOT number 39:00 */
+		    ToEEPROM[FIRST_DATA] = (*((volatile uint8_t *)(UID_BASE + 0x04)));
+		    ToEEPROM[FIRST_DATA + 1] = (*((volatile uint8_t *)(UID_BASE + 0x02)));
+		    ToEEPROM[FIRST_DATA + 2] = (*((volatile uint8_t *)(UID_BASE + 0x01)));
+		    ToEEPROM[FIRST_DATA + 3] = (*((volatile uint8_t *)(UID_BASE + 0x00)));
+		  }
+		  break;
+		case 6: /* Send UID third word */
+		  {
+		    /* Clear Counter */
+		    MyStateRegister &= ~(COUNTER_MSK);
+		    MyStateRegister &= ~(UART_SEND_HEADER);
+		    ToEEPROM[FIRST_DATA] = 0xFF;
+		    ToEEPROM[FIRST_DATA + 1] = 0xFF;
+		    ToEEPROM[FIRST_DATA + 2] = 0xFF;
+		    ToEEPROM[FIRST_DATA + 3] = 0xFF;
+		    /* Continue with data */
 		    MyStateRegister |= UART_PROGRESS;
 		  }
 		  break;
