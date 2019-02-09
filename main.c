@@ -224,7 +224,7 @@ int main(void)
 		  ToEEPROM[0] = READ;
 		  ToEEPROM[1] = (ReadSPIEEPROMaddr >> 8) & 0xFF;
 		  ToEEPROM[2] = ReadSPIEEPROMaddr & 0xFF;
-		  Write_SPI(ToEEPROM, 7);
+		  Write_SPI(ToEEPROM, TO_EPR_LENGTH);
 		  ReadSPIEEPROMaddr += 4;
 		  MyStateRegister |= UART_PROGRESS;
 		  EnableTransmit_USART1();
@@ -329,12 +329,13 @@ void StoreDateTime()
       TSToEEPROM[2] = SPIEEPROMaddr & 0xFF;
       if(pagebarrier == 0)
 	{
-	  Write_SPI(TSToEEPROM, spibufflength + 3);
+	  Write_SPI(TSToEEPROM, TSTO_EPR_LENGTH);
 	}
       /* if at the barrier divide date and time */
+      /* Only TO_EPR_LENGHT wiht 4 byte data */
       else
 	{
-	  Write_SPI(TSToEEPROM, 4 + 3);
+	  Write_SPI(TSToEEPROM, TO_EPR_LENGTH);
 	  /* Wait till succesful write */
 	  ConfigureLPTIM1();
 	  do
@@ -356,7 +357,7 @@ void StoreDateTime()
 	  TSToEEPROM[FIRST_DATA + 1] = TSToEEPROM[FIRST_DATA + 5];
 	  TSToEEPROM[FIRST_DATA + 2] = TSToEEPROM[FIRST_DATA + 6];
 	  TSToEEPROM[FIRST_DATA + 3] = TSToEEPROM[FIRST_DATA + 7];
-	  Write_SPI(TSToEEPROM, 4 + 3);
+	  Write_SPI(TSToEEPROM, TO_EPR_LENGTH);
 	}
       /* Checque SPI EEPROM address valid? */
       SPIEEPROMaddr += spibufflength;
