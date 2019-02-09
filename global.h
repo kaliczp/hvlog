@@ -41,6 +41,7 @@
 #define WRITE            0b00000010 /* 0x02 */
 #define READ             0b00000011 /* 0x03 */
 #define WEL              0b00000010 /* Write enable latch */
+#define FIRST_DATA       4          /* The first data after SPI address */
 #define TO_EPR_LENGTH    8
 #define TSTO_EPR_LENGTH    12
 #define SPI_EPR_PG_SUB1  127        /* SPI EEPROM page size in bytes - 1 */
