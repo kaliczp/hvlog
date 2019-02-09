@@ -38,7 +38,7 @@ uint32_t LastReadSPIEEPROMaddr;
 uint32_t ReadSPIEEPROMaddr;
 
 uint8_t FromLowPower;
-volatile uint8_t uartsend = 3;
+volatile uint8_t uartsend = FIRST_DATA;
 volatile uint8_t CharToReceive;
 uint8_t ToEEPROM[TO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x17, 0x03, 0x15};
 
@@ -145,13 +145,13 @@ int main(void)
 		  else if(CharToReceive == 97) /* 'a' letter code */
 		    {
 		      /* Read and send current time, without control*/
-		      ToEEPROM[6] = RTC->SSR & 0xFF;
+		      ToEEPROM[FIRST_DATA + 3] = RTC->SSR & 0xFF;
 		      TimeRegister = RTC->TR;
 		      /* Shadow register is frozen until read DR */
 		      DateRegister = RTC->DR;
-		      ToEEPROM[3] = (TimeRegister >> 16) & 0xFF;
-		      ToEEPROM[4] = (TimeRegister >> 8) & 0xFF;
-		      ToEEPROM[5] = TimeRegister & 0xFF;
+		      ToEEPROM[FIRST_DATA] = (TimeRegister >> 16) & 0xFF;
+		      ToEEPROM[FIRST_DATA + 1] = (TimeRegister >> 8) & 0xFF;
+		      ToEEPROM[FIRST_DATA + 2] = TimeRegister & 0xFF;
 		      MyStateRegister |= UART_PROGRESS;
 		      EnableTransmit_USART1();
 		      /* Start UART transmission */
@@ -166,7 +166,7 @@ int main(void)
 		    }
 		}
 	    }
-	  else if(((MyStateRegister & (UART_SEND_HEADER)) == (UART_SEND_HEADER)) && (uartsend == 4))
+	  else if(((MyStateRegister & (UART_SEND_HEADER)) == (UART_SEND_HEADER)) && (uartsend == FIRST_DATA))
 	    {
 	      MyStateRegister++;
 	      switch(MyStateRegister & COUNTER_MSK)
@@ -174,10 +174,10 @@ int main(void)
 		case 1: /* Send firmware date */
 		  {
 		    EnableTransmit_USART1();
-		    ToEEPROM[3] = 0xC0;
-		    ToEEPROM[4] = (FWDate >> 16) & 0xFF;
-		    ToEEPROM[5] = (FWDate >> 8) & 0xFF;
-		    ToEEPROM[6] = FWDate & 0xFF;
+		    ToEEPROM[FIRST_DATA] = 0xC0;
+		    ToEEPROM[FIRST_DATA + 1] = (FWDate >> 16) & 0xFF;
+		    ToEEPROM[FIRST_DATA + 2] = (FWDate >> 8) & 0xFF;
+		    ToEEPROM[FIRST_DATA + 3] = FWDate & 0xFF;
 		  }
 		  break;
 		case 2: /* Send firmware time */
@@ -186,10 +186,10 @@ int main(void)
 		    MyStateRegister &= ~(COUNTER_MSK);
 		    /* Send of timestamp finished */
 		    MyStateRegister &= ~(UART_SEND_HEADER);
-		    ToEEPROM[3] = (FWTime >> 16) & 0xFF;
-		    ToEEPROM[4] = (FWTime >> 8) & 0xFF;
-		    ToEEPROM[5] = FWTime & 0xFF;
-		    ToEEPROM[6] = 0;
+		    ToEEPROM[FIRST_DATA] = (FWTime >> 16) & 0xFF;
+		    ToEEPROM[FIRST_DATA + 1] = (FWTime >> 8) & 0xFF;
+		    ToEEPROM[FIRST_DATA + 2] = FWTime & 0xFF;
+		    ToEEPROM[FIRST_DATA + 3] = 0;
 		    MyStateRegister |= UART_PROGRESS;
 		  }
 		  break;
@@ -199,7 +199,7 @@ int main(void)
 	      /* Enable TXE interrupt */
 	      USART1->CR1 |= USART_CR1_TXEIE;
 	    }
-	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && (uartsend == 4))
+	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && (uartsend == FIRST_DATA))
 	    {
               MyStateRegister &= ~(UART_PROGRESS);
 	      DisableTransmit_USART1();
@@ -290,24 +290,24 @@ void StoreDateTime()
   uint8_t spibufflength = 4;
   uint8_t pagebarrier = 0;
 
-  TSToEEPROM[3] = (TimeRegister >> 24) & 0xFF;
-  TSToEEPROM[4] = (TimeRegister >> 16) & 0xFF;
-  TSToEEPROM[5] = (TimeRegister >> 8) & 0xFF;
-  TSToEEPROM[6] = TimeRegister & 0xFF;
+  TSToEEPROM[FIRST_DATA] = (TimeRegister >> 24) & 0xFF;
+  TSToEEPROM[FIRST_DATA + 1] = (TimeRegister >> 16) & 0xFF;
+  TSToEEPROM[FIRST_DATA + 2] = (TimeRegister >> 8) & 0xFF;
+  TSToEEPROM[FIRST_DATA + 3] = TimeRegister & 0xFF;
   if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
     {
       spibufflength = 8;
       if((MyStateRegister & (INIT_UART)) == (INIT_UART))
 	{
-	  TSToEEPROM[7] = 0xC0; // Data flag & during read
+	  TSToEEPROM[FIRST_DATA + 4] = 0xC0; // Data flag & during read
 	}
       else
 	{
-	  TSToEEPROM[7] = 0x40; // Date flag
+	  TSToEEPROM[FIRST_DATA + 4] = 0x40; // Date flag
 	}
-      TSToEEPROM[8] = (DateRegister >> 16) & 0xFF;
-      TSToEEPROM[9] = (DateRegister >> 8) & 0xFF;
-      TSToEEPROM[10] = DateRegister & 0xFF;
+      TSToEEPROM[FIRST_DATA + 5] = (DateRegister >> 16) & 0xFF;
+      TSToEEPROM[FIRST_DATA + 6] = (DateRegister >> 8) & 0xFF;
+      TSToEEPROM[FIRST_DATA + 7] = DateRegister & 0xFF;
       /* Test the page barrier! SPI_EPR_PG_SUB1 page size in bytes */
       /* It uses binary modulo */
       if(((SPIEEPROMaddr + 4) & SPI_EPR_PG_SUB1) == 0)
@@ -352,10 +352,10 @@ void StoreDateTime()
 	  TSToEEPROM[0] = WRITE;
 	  TSToEEPROM[1] = ((SPIEEPROMaddr + 4) >> 8) & 0xFF;
 	  TSToEEPROM[2] = (SPIEEPROMaddr + 4) & 0xFF;
-	  TSToEEPROM[3] = TSToEEPROM[7];
-	  TSToEEPROM[4] = TSToEEPROM[8];
-	  TSToEEPROM[5] = TSToEEPROM[9];
-	  TSToEEPROM[6] = TSToEEPROM[10];
+	  TSToEEPROM[FIRST_DATA] = TSToEEPROM[FIRST_DATA + 4];
+	  TSToEEPROM[FIRST_DATA + 1] = TSToEEPROM[FIRST_DATA + 5];
+	  TSToEEPROM[FIRST_DATA + 2] = TSToEEPROM[FIRST_DATA + 6];
+	  TSToEEPROM[FIRST_DATA + 3] = TSToEEPROM[FIRST_DATA + 7];
 	  Write_SPI(TSToEEPROM, 4 + 3);
 	}
       /* Checque SPI EEPROM address valid? */
