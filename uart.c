@@ -153,16 +153,16 @@ void USART2_IRQHandler(void)
   }
   else if((USART2->ISR & USART_ISR_TC) == USART_ISR_TC)
   {
-    if(uartsend == 8)
+    if(uartsend == TO_EPR_LENGTH)
     {
-      uartsend=4;
+      uartsend = FIRST_DATA;
       USART2->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
       /* Activate transmit disable flag */
     }
   }
   else if((USART2->ISR & USART_ISR_TXE) == USART_ISR_TXE)
   {
-    if(uartsend >= 7)
+    if(uartsend >= (TO_EPR_LENGTH-1))
     {
       /* (1) Disable TX register Empty interrupt */
       /* (2) Clear TC flag */
