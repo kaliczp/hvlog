@@ -55,32 +55,32 @@ void Deconfigure_GPIOB_Test(void)
   RCC->IOPENR &= ~(RCC_IOPENR_GPIOBEN); /* (2) */
 }
 
-void Configure_USART2(void)
+void Configure_USART(void)
 {
   volatile uint32_t tmpreg;
-  /* GPIO configuration for USART2 signals */
+  /* GPIO configuration for USART signals */
   /* (0) Enable GPIOB clock */
   /* (1) Some delay based on LL */
   /* (2) Select AF mode (10) on PB6 (TX) and PB7 (RX) */
   /* push-pull default */
   /* (3) pull-up */
   /* (4) high speed */
-  /* AF0 default value for USART2 signals in PB6 and 7 */
+  /* AF0 default value for USART signals in PB6 and 7 */
   RCC->IOPENR |= RCC_IOPENR_GPIOBEN; /* (0) */
   tmpreg = RCC->IOPENR; /* (1) */
   (void)tmpreg; /* (1) */
 
-  /* Select LSE as USART2 clock source 11 */
+  /* Select LSE as USART clock source 11 */
   /* RCC->CCIPR |= RCC_CCIPR_USART2SEL; */
 
   GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE6 | GPIO_MODER_MODE7)) \
     | (GPIO_MODER_MODE6_1 | GPIO_MODER_MODE7_1); /* (2) */
   GPIOB->PUPDR = (GPIOB->PUPDR & ~(GPIO_PUPDR_PUPD6 | GPIO_PUPDR_PUPD7)) | (GPIO_PUPDR_PUPD6_0 | GPIO_PUPDR_PUPD7_0); /* (3) */
 
-  /* Enable the peripheral clock USART2 */
+  /* Enable the peripheral clock USART */
   RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
 
-  /* Configure USART2 */
+  /* Configure USART */
   /* 2097152 / 1200 = 1748 */
   /* (1b) 1200 baud RM 0377 24.5.4 */
   /* (2a) oversampling by 16 no OVER8, 8 data bit, 1 start bit, no
@@ -94,9 +94,9 @@ void Configure_USART2(void)
   USART2->CR2 |= USART_CR2_STOP_1; /* (2ab) */
   USART2->CR1 |= USART_CR1_UE ; /* (2b) */
   /* Configure exti and IT */
-  /* (7) unmask line 25 for USART2 */
-  /* (8) Set priority for USART2_IRQn */
-  /* (9) Enable USART2_IRQn */
+  /* (7) unmask line 25 for USART */
+  /* (8) Set priority for USART_IRQn */
+  /* (9) Enable USART_IRQn */
   /* EXTI->IMR |= EXTI_IMR_IM25; /\* (7) *\/  */
   NVIC_SetPriority(USART2_IRQn, 0); /* (8) */
   NVIC_EnableIRQ(USART2_IRQn); /* (9) */
@@ -104,7 +104,7 @@ void Configure_USART2(void)
   USART2->CR1 &= ~(USART_CR1_TE); /* (10) */
 }
 
-void EnableTransmit_USART2(void)
+void EnableTransmit_USART(void)
 {
   /* (3) Enable UART transmitter line */
   /* (5) poll the TEACK bit in the USART_ISR register */
@@ -115,7 +115,7 @@ void EnableTransmit_USART2(void)
     }
 }
 
-void DisableTransmit_USART2(void)
+void DisableTransmit_USART(void)
 {
   /* (0) disable transmitter interrupt*/
   /* (1) disable transmitter */
@@ -125,13 +125,13 @@ void DisableTransmit_USART2(void)
   USART2->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
 }
 
-void Deconfigure_USART2(void)
+void Deconfigure_USART(void)
 {
   /* (3) UART disabled */
   /* (4) Disable receiver */
-  /* (4) Disable USART2 clock */
+  /* (4) Disable USART clock */
   /* (5) Disable GPIOB clock */
-  NVIC_DisableIRQ(USART2_IRQn); /* Disable USART2_IRQn */
+  NVIC_DisableIRQ(USART2_IRQn); /* Disable USART_IRQn */
   USART2->CR1 &= ~(USART_CR1_UE); /* (3) */
   USART2->CR1 &= ~(USART_CR1_RE | USART_CR1_RXNEIE); /* (4) */
   GPIOB->MODER |= (GPIO_MODER_MODE6 | GPIO_MODER_MODE7); /* (4a) */
@@ -140,7 +140,7 @@ void Deconfigure_USART2(void)
 }
 
 /**
-  * Brief   This function handles USART2 interrupt request.
+  * Brief   This function handles USART interrupt request.
   * Param   None
   * Retval  None
   */
@@ -176,6 +176,6 @@ void USART2_IRQHandler(void)
   }
   else
   {
-      NVIC_DisableIRQ(USART2_IRQn); /* Disable USART2_IRQn */
+      NVIC_DisableIRQ(USART2_IRQn); /* Disable USART_IRQn */
   }
 }

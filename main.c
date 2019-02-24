@@ -158,7 +158,7 @@ int main(void)
 		      ToEEPROM[FIRST_DATA + 1] = (TimeRegister >> 8) & 0xFF;
 		      ToEEPROM[FIRST_DATA + 2] = TimeRegister & 0xFF;
 		      MyStateRegister |= UART_PROGRESS;
-		      EnableTransmit_USART2();
+		      EnableTransmit_USART();
 		      /* Start UART transmission */
 		      USART2->TDR = ToEEPROM[uartsend++];
 		      /* Enable TXE interrupt */
@@ -167,7 +167,7 @@ int main(void)
 		  else if(CharToReceive == 113) /* 'q' letter code */
 		    {
 		      MyStateRegister &= ~(READY_UART);
-		      Deconfigure_USART2();
+		      Deconfigure_USART();
 		    }
 		}
 	    }
@@ -179,7 +179,7 @@ int main(void)
 		{
 		case 1: /* Send firmware date */
 		  {
-		    EnableTransmit_USART2();
+		    EnableTransmit_USART();
 		    ToEEPROM[FIRST_DATA] = 0xC0;
 		    ToEEPROM[FIRST_DATA + 1] = (FWDate >> 16) & 0xFF;
 		    ToEEPROM[FIRST_DATA + 2] = (FWDate >> 8) & 0xFF;
@@ -245,7 +245,7 @@ int main(void)
 	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && (uartsend == FIRST_DATA))
 	    {
 	      MyStateRegister &= ~(UART_PROGRESS);
-	      DisableTransmit_USART2();
+	      DisableTransmit_USART();
 	      if(CharToReceive == 98 || CharToReceive == 101 || CharToReceive == 102) /* char b or e or f*/
 		{
 		  /* If SPI not initialised fire up */
@@ -271,7 +271,7 @@ int main(void)
 		  Write_SPI(ToEEPROM, TO_EPR_LENGTH);
 		  ReadSPIEEPROMaddr = IncreaseSPIEEPROMaddr(ReadSPIEEPROMaddr, 4);
 		  MyStateRegister |= UART_PROGRESS;
-		  EnableTransmit_USART2();
+		  EnableTransmit_USART();
 		  /* Start UART transmission */
 		  USART2->TDR = ToEEPROM[uartsend++];
 		  /* Enable TXE interrupt */
@@ -303,7 +303,7 @@ int main(void)
 	  else if((MyStateRegister & (INIT_UART)) == (INIT_UART))
 	    {
 	      MyStateRegister &= ~(INIT_UART);
-	      Configure_USART2();
+	      Configure_USART();
 	      MyStateRegister |= READY_UART;
 	    }
 	  else if((MyStateRegister & (READY_UART)) == (READY_UART))
