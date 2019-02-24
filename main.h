@@ -30,4 +30,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 #include "uart.h"
 
 void StoreDateTime(void);
+uint32_t IncreaseSPIEEPROMaddr(uint32_t currentaddr, uint32_t datalength);
 void ProcessDateTimeSetting(void);

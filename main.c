@@ -239,9 +239,9 @@ int main(void)
 	    }
 	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && (uartsend == FIRST_DATA))
 	    {
-              MyStateRegister &= ~(UART_PROGRESS);
+	      MyStateRegister &= ~(UART_PROGRESS);
 	      DisableTransmit_USART1();
-	      if(CharToReceive == 98) /* char b */
+	      if(CharToReceive == 98 || CharToReceive == 101) /* char b or e*/
 		{
 		  /* If SPI not initialised fire up */
 		  if((GPIOA->MODER & (GPIO_MODER_MODE15_0)) == (GPIO_MODER_MODE15_0))
@@ -263,7 +263,7 @@ int main(void)
 		  ToEEPROM[1] = (ReadSPIEEPROMaddr >> 8) & 0xFF;
 		  ToEEPROM[2] = ReadSPIEEPROMaddr & 0xFF;
 		  Write_SPI(ToEEPROM, TO_EPR_LENGTH);
-		  ReadSPIEEPROMaddr += 4;
+		  ReadSPIEEPROMaddr = IncreaseSPIEEPROMaddr(ReadSPIEEPROMaddr, 4);
 		  MyStateRegister |= UART_PROGRESS;
 		  EnableTransmit_USART1();
 		  /* Start UART transmission */
@@ -368,12 +368,15 @@ void StoreDateTime()
       if(pagebarrier == 0)
 	{
 	  Write_SPI(TSToEEPROM, TSTO_EPR_LENGTH);
+	  SPIEEPROMaddr = IncreaseSPIEEPROMaddr(SPIEEPROMaddr, spibufflength);
 	}
       /* if at the barrier divide date and time */
       /* Only TO_EPR_LENGHT wiht 4 byte data */
       else
 	{
+	  spibufflength = 4;
 	  Write_SPI(TSToEEPROM, TO_EPR_LENGTH);
+	  SPIEEPROMaddr = IncreaseSPIEEPROMaddr(SPIEEPROMaddr, spibufflength);
 	  /* Wait till succesful write */
 	  ConfigureLPTIM1();
 	  do
@@ -396,12 +399,28 @@ void StoreDateTime()
 	  TSToEEPROM[FIRST_DATA + 2] = TSToEEPROM[FIRST_DATA + 6];
 	  TSToEEPROM[FIRST_DATA + 3] = TSToEEPROM[FIRST_DATA + 7];
 	  Write_SPI(TSToEEPROM, TO_EPR_LENGTH);
+	  SPIEEPROMaddr = IncreaseSPIEEPROMaddr(SPIEEPROMaddr, spibufflength);
 	}
-      /* Checque SPI EEPROM address valid? */
-      SPIEEPROMaddr += spibufflength;
       RTC->BKP0R = SPIEEPROMaddr;
     }
   Deconfigure_GPIO_SPI1(SPI_IS_STANDALONE);
+}
+
+/**
+  * Brief   This function increases SPIEEPROM address with datalength and watch end
+  * Param   uint32_t currentaddr
+  * Param   uint32_t datalength
+  * Retval  uint32_t SPIaddress
+  */
+uint32_t IncreaseSPIEEPROMaddr(uint32_t currentaddr, uint32_t datalength)
+{
+  currentaddr += datalength;
+  /* Checque SPI EEPROM address valid? */
+  if(currentaddr >= SPIEEPROM_LENGTH)
+    {
+      currentaddr = 0;
+    }
+  return(currentaddr);
 }
 
 /**

@@ -45,6 +45,7 @@
 #define TO_EPR_LENGTH    7
 #define TSTO_EPR_LENGTH    11
 #define SPI_EPR_PG_SUB1  127        /* SPI EEPROM page size in bytes - 1 */
+#define SPIEEPROM_LENGTH 65536     /* SPI EEPROM size in bytes (64 Kbytes, 512Kbit) */
 
 #define SPI_IS_STANDALONE     1
 #define SPI_IS_NOT_STANDALONE     0
