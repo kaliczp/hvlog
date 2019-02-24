@@ -138,6 +138,11 @@ int main(void)
 		      LastReadSPIEEPROMaddr = 0;
                       MyStateRegister |= UART_SEND_HEADER;
                     }
+		  else if(CharToReceive == 102) /* 'f' letter code */
+		    {
+		      LastReadSPIEEPROMaddr = SPIEEPROMaddr + 4;
+                      MyStateRegister |= UART_SEND_HEADER;
+                    }
 		  else if(CharToReceive == 98) /* 'b' letter code */
 		    {
                       MyStateRegister |= UART_SEND_HEADER;
@@ -241,7 +246,7 @@ int main(void)
 	    {
 	      MyStateRegister &= ~(UART_PROGRESS);
 	      DisableTransmit_USART1();
-	      if(CharToReceive == 98 || CharToReceive == 101) /* char b or e*/
+	      if(CharToReceive == 98 || CharToReceive == 101 || CharToReceive == 102) /* char b or e or f*/
 		{
 		  /* If SPI not initialised fire up */
 		  if((GPIOA->MODER & (GPIO_MODER_MODE15_0)) == (GPIO_MODER_MODE15_0))
@@ -257,7 +262,7 @@ int main(void)
 	  else if((MyStateRegister & (SPI_READROM)) == (SPI_READROM))
 	    {
 	      MyStateRegister &= ~(SPI_READROM);
-	      if(ReadSPIEEPROMaddr < SPIEEPROMaddr)
+	      if(ReadSPIEEPROMaddr != SPIEEPROMaddr)
 		{
 		  ToEEPROM[0] = READ;
 		  ToEEPROM[1] = (ReadSPIEEPROMaddr >> 8) & 0xFF;
