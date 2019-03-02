@@ -44,7 +44,7 @@
 #define FIRST_DATA       4          /* The first data after SPI address */
 #define TO_EPR_LENGTH    8
 #define TSTO_EPR_LENGTH    12
-#define SPI_EPR_PG_SUB1  127        /* SPI EEPROM page size in bytes - 1 */
+#define SPI_EPR_PG_SUB1  255        /* SPI EEPROM page size in bytes - 1 */
 #define SPIEEPROM_LENGTH 131072     /* SPI EEPROM size in bytes (128 Kbytes, 1Mbit) */
 
 #define SPI_IS_STANDALONE     1
