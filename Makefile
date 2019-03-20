@@ -44,7 +44,7 @@ INCS	 = -I$(CUBE_CORE)
 INCS	+= -I$(CUBE_STM32)/Include
 INCS	+= -I.
 
-LDFLAGS	 = -Wl,--gc-sections,-Map=$(TARGET).map,-lgcc,-lc,-lnosys
+LDFLAGS	 = -Wl,--cref,--gc-sections,-Map=$(TARGET).map,-lgcc,-lc,-lnosys
 LDFLAGS	+= -ffunction-sections -fdata-sections -T$(MCU_UC)K6Tx_FLASH.ld -L.
 LDFLAGS += --specs=nano.specs
 
