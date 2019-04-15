@@ -178,6 +178,8 @@ void USART1_IRQHandler(void)
   }
   else
   {
-      NVIC_DisableIRQ(USART1_IRQn); /* Disable USART1_IRQn */
+    /* Clear all possible flags */
+    USART2->ICR |= USART_ICR_PECF | USART_ICR_FECF | USART_ICR_NCF | \
+      USART_ICR_ORECF | USART_ICR_IDLECF | USART_ICR_TCCF | USART_ICR_CTSCF;
   }
 }
