@@ -130,8 +130,9 @@ int main(void)
 		    {
 		      /* Keep readout date and time as the first record 
 			 of next readout */
-		      LastReadSPIEEPROMaddr = ReadSPIEEPROMaddr - 8;
+		      LastReadSPIEEPROMaddr = SPIEEPROMaddr - 8;
 		      RTC->BKP3R =  LastReadSPIEEPROMaddr;
+		      ReadSPIEEPROMaddr = LastReadSPIEEPROMaddr;
 		    }
 		  else if(CharToReceive == 101) /* 'e' letter code */
 		    {
