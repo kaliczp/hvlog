@@ -95,10 +95,10 @@ void Configure_USART(void)
   USART2->CR1 |= USART_CR1_UE ; /* (2b) */
   /* Configure exti and IT */
   /* (7) unmask line 25 for USART */
-  /* (8) Set priority for USART_IRQn */
+  /* (8) Set priority for USART_IRQn to 1 0b01000000 */
   /* (9) Enable USART_IRQn */
   /* EXTI->IMR |= EXTI_IMR_IM25; /\* (7) *\/  */
-  NVIC_SetPriority(USART2_IRQn, 0); /* (8) */
+  NVIC_SetPriority(USART2_IRQn, 1); /* (8) */
   NVIC_EnableIRQ(USART2_IRQn); /* (9) */
   /* Disable transmit */
   USART2->CR1 &= ~(USART_CR1_TE); /* (10) */
