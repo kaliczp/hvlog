@@ -86,18 +86,18 @@ int main(void)
 		  MyStateRegister |= STORE_TIMESTAMP_DAT;
 		}
 	      Deconfigure_GPIOB_Test();
+	      /* Join time with subseconds */
+	      TimeRegister = TimeRegister << 8;
+	      TimeRegister |= SubSecondRegister;
 	      if(RTC->BKP2R < DateRegister)
 		{
 		  MyStateRegister |= (STORE_TIMESTAMP_DAT | STORE_TIMESTAMP_TIM);
 		}
-	      /* Prevent debouncing, store same time */
+	      /* Prevent debouncing, and do not store same time */
 	      else if(RTC->BKP1R != TimeRegister)
 		{
 		  MyStateRegister |= STORE_TIMESTAMP_TIM;
 		}
-	      /* Join time with subseconds */
-	      TimeRegister = TimeRegister << 8;
-	      TimeRegister |= SubSecondRegister;
 	      if((MyStateRegister & (STORE_TIMESTAMP_TIM)) == (STORE_TIMESTAMP_TIM))
 		{
 		  MyStateRegister &= ~(STORE_TIMESTAMP_TIM);
