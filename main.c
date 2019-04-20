@@ -86,29 +86,21 @@ int main(void)
 		  MyStateRegister |= STORE_TIMESTAMP_DAT;
 		}
 	      Deconfigure_GPIOB_Test();
-	      if(RTC->BKP2R < DateRegister)
-		{
-		  MyStateRegister |= (STORE_TIMESTAMP_DAT | STORE_TIMESTAMP_TIM);
-		}
-	      /* Prevent debouncing, store same time */
-	      else if(RTC->BKP1R != TimeRegister)
-		{
-		  MyStateRegister |= STORE_TIMESTAMP_TIM;
-		}
 	      /* Join time with subseconds */
 	      TimeRegister = TimeRegister << 8;
 	      TimeRegister |= SubSecondRegister;
-	      if((MyStateRegister & (STORE_TIMESTAMP_TIM)) == (STORE_TIMESTAMP_TIM))
+	      if(RTC->BKP2R < DateRegister)
 		{
-		  MyStateRegister &= ~(STORE_TIMESTAMP_TIM);
-		  StoreDateTime();
-		  RTC->BKP1R = TimeRegister;
-		  if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
-		    {
-		      MyStateRegister &= ~(STORE_TIMESTAMP_DAT);
-		      RTC->BKP2R = DateRegister;
-		    }
+		  MyStateRegister |= STORE_TIMESTAMP_DAT;
 		}
+	      StoreDateTime();
+	      RTC->BKP1R = TimeRegister;
+	      if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
+		{
+		  MyStateRegister &= ~(STORE_TIMESTAMP_DAT);
+		  RTC->BKP2R = DateRegister;
+		}
+
 	    }
 	  else if((MyStateRegister & (CHAR_RECEIVED)) == (CHAR_RECEIVED))
 	    {
@@ -330,7 +322,7 @@ int main(void)
 }
 void StoreDateTime()
 {
-  uint8_t TSToEEPROM[TSTO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x21, 0x31, 0x0, 0x40, 0x17, 0x10, 0x01,};
+  uint8_t TSToEEPROM[TSTO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x21, 0x31, 0x50, 0xd8, 0x40, 0x19, 0x04, 0x30};
   uint8_t spibufflength = 4;
   uint8_t pagebarrier = 0;
 
