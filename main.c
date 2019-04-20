@@ -91,24 +91,16 @@ int main(void)
 	      TimeRegister |= SubSecondRegister;
 	      if(RTC->BKP2R < DateRegister)
 		{
-		  MyStateRegister |= (STORE_TIMESTAMP_DAT | STORE_TIMESTAMP_TIM);
+		  MyStateRegister |= STORE_TIMESTAMP_DAT;
 		}
-	      /* Prevent debouncing, and do not store same time */
-	      else if(RTC->BKP1R != TimeRegister)
+	      StoreDateTime();
+	      RTC->BKP1R = TimeRegister;
+	      if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
 		{
-		  MyStateRegister |= STORE_TIMESTAMP_TIM;
+		  MyStateRegister &= ~(STORE_TIMESTAMP_DAT);
+		  RTC->BKP2R = DateRegister;
 		}
-	      if((MyStateRegister & (STORE_TIMESTAMP_TIM)) == (STORE_TIMESTAMP_TIM))
-		{
-		  MyStateRegister &= ~(STORE_TIMESTAMP_TIM);
-		  StoreDateTime();
-		  RTC->BKP1R = TimeRegister;
-		  if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
-		    {
-		      MyStateRegister &= ~(STORE_TIMESTAMP_DAT);
-		      RTC->BKP2R = DateRegister;
-		    }
-		}
+
 	    }
 	  else if((MyStateRegister & (CHAR_RECEIVED)) == (CHAR_RECEIVED))
 	    {
