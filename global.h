@@ -17,7 +17,7 @@
 #define COUNTER3              0x4
 #define COUNTER4              0x8
 #define COUNTER_MSK           0xF
-#define STORE_TIMESTAMP_TIM   0x10
+/* #define STORE_TIMESTAMP_TIM   0x10 */
 #define STORE_TIMESTAMP_DAT   0x20
 #define UART_SEND_HEADER      0x40
 #define INIT_SPIREAD          0x80
