@@ -327,7 +327,7 @@ void StoreDateTime()
   uint8_t spibufflength = 4;
   uint8_t pagebarrier = 0;
 
-  TSToEEPROM[FIRST_DATA] = (TimeRegister >> 24) & 0xFF;
+  TSToEEPROM[FIRST_DATA] = (TimeRegister >> 24) & 0x3F; // AM/PM skip
   TSToEEPROM[FIRST_DATA + 1] = (TimeRegister >> 16) & 0xFF;
   TSToEEPROM[FIRST_DATA + 2] = (TimeRegister >> 8) & 0xFF;
   TSToEEPROM[FIRST_DATA + 3] = TimeRegister & 0xFF;
@@ -343,7 +343,7 @@ void StoreDateTime()
 	  TSToEEPROM[FIRST_DATA + 4] = 0x40; // Date flag
 	}
       TSToEEPROM[FIRST_DATA + 5] = (DateRegister >> 16) & 0xFF;
-      TSToEEPROM[FIRST_DATA + 6] = (DateRegister >> 8) & 0xFF;
+      TSToEEPROM[FIRST_DATA + 6] = (DateRegister >> 8) & 0x1F; //weekday skip
       TSToEEPROM[FIRST_DATA + 7] = DateRegister & 0xFF;
       /* Test the page barrier! SPI_EPR_PG_SUB1 page size in bytes */
       /* It uses binary modulo */
