@@ -142,6 +142,11 @@ int main(void)
 		    }
 		  else if(CharToReceive == 97) /* 'a' letter code */
 		    {
+		      /* Wait until shadow register refresh */
+		      RTC->ISR &= ~(RTC_ISR_RSF);
+		      while((RTC->ISR & RTC_ISR_RSF) != RTC_ISR_RSF)
+			{
+			}
 		      /* Read and send current time, without control*/
 		      ToEEPROM[FIRST_DATA + 3] = RTC->SSR & 0xFF;
 		      TimeRegister = RTC->TR;
