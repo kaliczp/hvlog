@@ -346,9 +346,11 @@ void StoreDateTime()
 	{
 	  TSToEEPROM[FIRST_DATA + 4] = 0x40; // Date flag
 	}
-      TSToEEPROM[FIRST_DATA + 5] = (DateRegister >> 16) & 0xFF;
       TSToEEPROM[FIRST_DATA + 6] = (DateRegister >> 8) & 0x1F; //weekday skip
       TSToEEPROM[FIRST_DATA + 7] = DateRegister & 0xFF;
+      /* Read date register and store only year */
+      DateRegister = RTC->DR;
+      TSToEEPROM[FIRST_DATA + 5] = (DateRegister >> 16) & 0xFF;
       /* Test the page barrier! SPI_EPR_PG_SUB1 page size in bytes */
       /* It uses binary modulo */
       if(((SPIEEPROMaddr + 4) & SPI_EPR_PG_SUB1) == 0)
