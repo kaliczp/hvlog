@@ -472,6 +472,9 @@ void ProcessDateTimeSetting(void)
       /* After the sixth character set value */
       if((MyStateRegister & (SET_TIME)) == (SET_TIME)) {
 	Init_RTC(TimeRegister, DateRegister);
+	/* Save date-and-time of setting */
+	RTC->BKP1R = TimeRegister;
+	RTC->BKP2R = DateRegister;
 	MyStateRegister &= ~(SET_DATE);
 	MyStateRegister &= ~(SET_TIME);
       } else {
