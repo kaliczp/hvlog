@@ -27,7 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 volatile uint32_t MyStateRegister;
 
 /* Timestamp values */
-volatile uint32_t SubSecondRegister;
 volatile uint32_t TimeRegister;
 volatile uint32_t DateRegister;
 const uint32_t FWTime = CURR_TIM;
@@ -86,9 +85,6 @@ int main(void)
 		  MyStateRegister |= STORE_TIMESTAMP_DAT;
 		}
 	      Deconfigure_GPIOB_Test();
-	      /* Join time with subseconds */
-	      TimeRegister = TimeRegister << 8;
-	      TimeRegister |= SubSecondRegister;
 	      /* Mask out weekday to compare */
 	      DateRegister &= 0x1FFF;
 	      /* Backup time year masked */
@@ -473,7 +469,7 @@ void ProcessDateTimeSetting(void)
       if((MyStateRegister & (SET_TIME)) == (SET_TIME)) {
 	Init_RTC(TimeRegister, DateRegister);
 	/* Save date-and-time of setting */
-	RTC->BKP1R = TimeRegister;
+	RTC->BKP1R = (TimeRegister << 8);
 	RTC->BKP2R = DateRegister;
 	MyStateRegister &= ~(SET_DATE);
 	MyStateRegister &= ~(SET_TIME);
