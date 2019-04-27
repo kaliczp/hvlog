@@ -89,7 +89,10 @@ int main(void)
 	      /* Join time with subseconds */
 	      TimeRegister = TimeRegister << 8;
 	      TimeRegister |= SubSecondRegister;
-	      if(RTC->BKP2R < DateRegister)
+	      /* Mask out weekday to compare */
+	      DateRegister &= 0x1FFF;
+	      /* Backup time year masked */
+	      if((RTC->BKP2R & 0x1FFF) != DateRegister)
 		{
 		  MyStateRegister |= STORE_TIMESTAMP_DAT;
 		}
@@ -346,11 +349,11 @@ void StoreDateTime()
 	{
 	  TSToEEPROM[FIRST_DATA + 4] = 0x40; // Date flag
 	}
-      TSToEEPROM[FIRST_DATA + 6] = (DateRegister >> 8) & 0x1F; //weekday skip
-      TSToEEPROM[FIRST_DATA + 7] = DateRegister & 0xFF;
       /* Read date register and store only year */
-      DateRegister = RTC->DR;
+      DateRegister |= (RTC->DR & 0xFF0000);
       TSToEEPROM[FIRST_DATA + 5] = (DateRegister >> 16) & 0xFF;
+      TSToEEPROM[FIRST_DATA + 6] = (DateRegister >> 8) & 0xFF;
+      TSToEEPROM[FIRST_DATA + 7] = DateRegister & 0xFF;
       /* Test the page barrier! SPI_EPR_PG_SUB1 page size in bytes */
       /* It uses binary modulo */
       if(((SPIEEPROMaddr + 4) & SPI_EPR_PG_SUB1) == 0)
