@@ -60,7 +60,6 @@
 extern volatile uint32_t MyStateRegister;
 
 /* Time and date global variables */
-extern volatile uint32_t SubSecondRegister;
 extern volatile uint32_t TimeRegister;
 extern volatile uint32_t DateRegister;
 
