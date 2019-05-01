@@ -129,8 +129,8 @@ void Init_RTC(uint32_t Time, uint32_t Date)
     { 
     }
   /* RTC->PRER = 0x007F00FF; */ /* (4) */
-  RTC->TR = Time; /* (5) */
-  RTC->DR = Date; /* (5a) */
+  RTC->TR = __REV(Time); /* (5) */
+  RTC->DR = __REV(Date); /* (5a) */
   RTC->ISR &= ~(RTC_ISR_INIT); /* (6) */
   RTC->WPR = 0xFF; /* (7) */
 }

@@ -63,7 +63,7 @@ int main(void)
   if(FromLowPower == 0)
     {
       Configure_RTC_Func();
-      Init_RTC(FWTime, FWDate);
+      Init_RTC(__REV(FWTime), __REV(FWDate));
     }
   /* Important variables. Loaded from RTC domain */
   SPIEEPROMaddr =  RTC->BKP0R;
@@ -441,42 +441,43 @@ void ProcessDateTimeSetting(void)
   {
   case 1: /* First char */
     {
-      TimeRegister = CharToReceive << 20;
+      TimeRegU.ToEEPROM[5] = CharToReceive << 4;
     }
     break;
   case 2: /* Second char */
     {
-      TimeRegister |= CharToReceive << 16;
+      TimeRegU.ToEEPROM[5] |= CharToReceive;
     }
     break;
   case 3: /* Third char */
     {
-      TimeRegister |= CharToReceive << 12;
+      TimeRegU.ToEEPROM[6] = CharToReceive << 4;
     }
     break;
   case 4: /* Fourth char */
     {
-      TimeRegister |= CharToReceive << 8;
+      TimeRegU.ToEEPROM[6] |= CharToReceive;
     }
     break;
   case 5: /* Fifth char */
     {
-      TimeRegister |= CharToReceive << 4;
+      TimeRegU.ToEEPROM[7] = CharToReceive << 4;
     }
     break;
   case 6: /* Sixth char */
     {
-      TimeRegister |= CharToReceive;
+      TimeRegU.ToEEPROM[7] |= CharToReceive;
       /* After the sixth character set value */
       if((MyStateRegister & (SET_TIME)) == (SET_TIME)) {
-	Init_RTC(TimeRegister, DateRegister);
+	Init_RTC(TimeRegU.TUp.TimeRegister, TimeRegU.TUp.DateRegister);
 	/* Save date-and-time of setting */
-	RTC->BKP1R = (TimeRegister << 8);
-	RTC->BKP2R = DateRegister;
+	TimeRegU.TUp.TimeRegister = TimeRegU.TUp.TimeRegister << 8;
+	RTC->BKP1R = TimeRegU.TUp.TimeRegister;
+	RTC->BKP2R = TimeRegU.TUp.DateRegister;
 	MyStateRegister &= ~(SET_DATE);
 	MyStateRegister &= ~(SET_TIME);
       } else {
-	DateRegister = TimeRegister;
+	TimeRegU.TUp.DateRegister = TimeRegU.TUp.TimeRegister;
 	MyStateRegister |= SET_TIME;
       }
       /* Clear Counter */
