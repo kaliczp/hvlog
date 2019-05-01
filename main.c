@@ -40,6 +40,17 @@ uint8_t FromLowPower;
 volatile uint8_t uartsend = FIRST_DATA;
 volatile uint8_t CharToReceive;
 uint8_t ToEEPROM[TO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x17, 0x03, 0x15};
+union
+{
+  struct {
+    uint8_t align;
+    uint8_t SPICommand;
+    uint8_t SPIAddress[TO_EPR_ADDRESSLENGTH];
+    uint32_t TimeRegister;
+  } TUp;
+  /* Add one byte to align */
+  uint8_t ToEEPROM[TO_EPR_LENGTH + 1];
+} TimeRegU;
 
 int main(void)
 {
@@ -146,14 +157,16 @@ int main(void)
 		      while((RTC->ISR & RTC_ISR_RSF) != RTC_ISR_RSF)
 			{
 			}
-		      /* Read and send current time, without control*/
-		      ToEEPROM[FIRST_DATA + 3] = RTC->SSR & 0xFF;
-		      TimeRegister = RTC->TR;
+		      /* Read and send current time, with subsecond */
+		      TimeRegU.TUp.TimeRegister = __REV(RTC->SSR);
+		      /* Reverse byte order */
+		      TimeRegU.TUp.TimeRegister |= __REV(RTC->TR << 8);
 		      /* Shadow register is frozen until read DR */
 		      DateRegister = RTC->DR;
-		      ToEEPROM[FIRST_DATA] = (TimeRegister >> 16) & 0xFF;
-		      ToEEPROM[FIRST_DATA + 1] = (TimeRegister >> 8) & 0xFF;
-		      ToEEPROM[FIRST_DATA + 2] = TimeRegister & 0xFF;
+		      ToEEPROM[FIRST_DATA] = TimeRegU.ToEEPROM[4];
+		      ToEEPROM[FIRST_DATA + 1] = TimeRegU.ToEEPROM[5];
+		      ToEEPROM[FIRST_DATA + 2] = TimeRegU.ToEEPROM[6];
+		      ToEEPROM[FIRST_DATA + 3] = TimeRegU.ToEEPROM[7];
 		      MyStateRegister |= UART_PROGRESS;
 		      EnableTransmit_USART();
 		      /* Start UART transmission */

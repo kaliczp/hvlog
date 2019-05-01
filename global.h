@@ -43,6 +43,7 @@
 #define WEL              0b00000010 /* Write enable latch */
 #define FIRST_DATA       3          /* The first data after SPI address */
 #define TO_EPR_LENGTH    7
+#define TO_EPR_ADDRESSLENGTH      2 /* SPI address in bytes */
 #define TSTO_EPR_LENGTH    11
 #define SPI_EPR_PG_SUB1  127        /* SPI EEPROM page size in bytes - 1 */
 #define SPIEEPROM_LENGTH 65536     /* SPI EEPROM size in bytes (64 Kbytes, 512Kbit) */
