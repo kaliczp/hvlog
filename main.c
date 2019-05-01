@@ -40,17 +40,8 @@ uint8_t FromLowPower;
 volatile uint8_t uartsend = FIRST_DATA;
 volatile uint8_t CharToReceive;
 uint8_t ToEEPROM[TO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x17, 0x03, 0x15};
-union
-{
-  struct {
-    uint8_t align;
-    uint8_t SPICommand;
-    uint8_t SPIAddress[TO_EPR_ADDRESSLENGTH];
-    uint32_t TimeRegister;
-  } TUp;
-  /* Add one byte to align */
-  uint8_t ToEEPROM[TO_EPR_LENGTH + 1];
-} TimeRegU;
+
+volatile time_date_reg TimeRegU;
 
 int main(void)
 {
@@ -154,6 +145,7 @@ int main(void)
 		    {
 		      /* Wait until shadow register refresh */
 		      RTC->ISR &= ~(RTC_ISR_RSF);
+		      TimeRegU.TUp.align = TSTO_EPR_LENGTH;
 		      while((RTC->ISR & RTC_ISR_RSF) != RTC_ISR_RSF)
 			{
 			}
@@ -162,15 +154,12 @@ int main(void)
 		      /* Reverse byte order */
 		      TimeRegU.TUp.TimeRegister |= __REV(RTC->TR << 8);
 		      /* Shadow register is frozen until read DR */
-		      DateRegister = RTC->DR;
-		      ToEEPROM[FIRST_DATA] = TimeRegU.ToEEPROM[4];
-		      ToEEPROM[FIRST_DATA + 1] = TimeRegU.ToEEPROM[5];
-		      ToEEPROM[FIRST_DATA + 2] = TimeRegU.ToEEPROM[6];
-		      ToEEPROM[FIRST_DATA + 3] = TimeRegU.ToEEPROM[7];
+		      TimeRegU.TUp.DateRegister = __REV(RTC->DR);
 		      MyStateRegister |= UART_PROGRESS;
 		      EnableTransmit_USART();
 		      /* Start UART transmission */
-		      USART1->TDR = ToEEPROM[uartsend++];
+		      uartsend = UFIRST_DATA;
+		      USART1->TDR = TimeRegU.ToEEPROM[uartsend++];
  		      /* Enable TXE interrupt */
 		      USART1->CR1 |= USART_CR1_TXEIE;
 		    }
