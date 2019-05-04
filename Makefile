@@ -1,4 +1,4 @@
-# STM32L0x1 Makefile for GNU toolchain 
+# STM32L0x3 Makefile for GNU toolchain 
 #
 # Usage:
 #	make template		Makes template
@@ -15,11 +15,12 @@ CUBE_CMSIS	= $(CUBE_DIR)/Drivers/CMSIS
 CUBE_CORE	= $(CUBE_CMSIS)/Include
 CUBE_STM32	= $(CUBE_CMSIS)/Device/ST/STM32L0xx
 CUBE_TMPL	= $(CUBE_STM32)/Source/Templates
-CUBE_GENER	= ~/workspace/L0newboard
+CUBE_GENER	= ~/workspace/L053Nucleo
 
 MCU_FAMILY	= stm32l0xx
-MCU_LC		= stm32l051xx
-MCU_UC		= STM32L051
+MCU_LC		= stm32l053xx
+MCU_UC		= STM32L053
+MCU_PACK	= R8Tx
 
 # Toolchain
 PREFIX	= arm-none-eabi
@@ -45,7 +46,7 @@ INCS	+= -I$(CUBE_STM32)/Include
 INCS	+= -I.
 
 LDFLAGS	 = -Wl,--cref,--gc-sections,-Map=$(TARGET).map,-lgcc,-lc,-lnosys
-LDFLAGS	+= -ffunction-sections -fdata-sections -T$(MCU_UC)K6Tx_FLASH.ld -L.
+LDFLAGS	+= -ffunction-sections -fdata-sections -T$(MCU_UC)$(MCU_PACK)_FLASH.ld -L.
 LDFLAGS += --specs=nano.specs
 
 ## Sources
@@ -65,13 +66,13 @@ $(TARGET).elf: startup_$(MCU_LC).s $(OBJS)
 
 ## Emacs etags
 tags:
-	etags *h *c $(CUBE_CORE)/core_cm0plus.h $(CUBE_CORE)/arm_common_tables.h $(CUBE_CORE)/cmsis_gcc.h $(CUBE_STM32)/Include/$(MCU_LC).h system_$(MCU_FAMILY).c startup_$(MCU_LC).s $(MCU_UC)K6Tx_FLASH.ld
+	etags *h *c $(CUBE_CORE)/core_cm0plus.h $(CUBE_CORE)/arm_common_tables.h $(CUBE_CORE)/cmsis_gcc.h $(CUBE_STM32)/Include/$(MCU_LC).h system_$(MCU_FAMILY).c startup_$(MCU_LC).s $(MCU_UC)$(MCU_PACK)_FLASH.ld
 
 ## Copy system files
 template:
 	cp -i $(CUBE_TMPL)/system_$(MCU_FAMILY).c .
 	cp -i $(CUBE_TMPL)/gcc/startup_$(MCU_LC).s .
-	cp -i $(CUBE_GENER)/$(MCU_UC)K6Tx_FLASH.ld .
+	cp -i $(CUBE_GENER)/$(MCU_UC)$(MCU_PACK)_FLASH.ld .
 
 ## Clean all files of compilation
 clean:
