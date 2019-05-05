@@ -32,4 +32,4 @@ void Configure_SPI1(void);
 void Activate_SPI1(void);
 void Deactivate_SPI1(void);
 void Deconfigure_SPI1(void);
-void Write_SPI(uint8_t toeeprom[TO_EPR_LENGTH], uint8_t length);
+void Write_SPI(volatile uint8_t *buff, uint8_t length);

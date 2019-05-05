@@ -1,4 +1,4 @@
-# STM32L011 Makefile for GNU toolchain
+# STM32L051 Makefile for GNU toolchain
 #
 # Usage:
 #	make template		Makes template

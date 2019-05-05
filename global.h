@@ -42,6 +42,7 @@
 #define READ             0b00000011 /* 0x03 */
 #define WEL              0b00000010 /* Write enable latch */
 #define FIRST_DATA       3          /* The first data after SPI address */
+#define UFIRST_DATA      4          /* The first data after SPI address */
 #define TO_EPR_LENGTH    7
 #define TO_EPR_ADDRESSLENGTH      2 /* SPI address in bytes */
 #define TSTO_EPR_LENGTH    11
@@ -59,13 +60,25 @@
 #define ModeStandby           0x2
 #endif /* MACROS_DEFINED */
 
+/* Type definition */
+#ifndef DATETIMEREG
+#define DATETIMEREG
+typedef struct
+{
+  uint8_t align;
+  uint8_t SPICommand;
+  uint8_t SPIAddress[TO_EPR_ADDRESSLENGTH];
+  uint32_t TimeRegister;
+  uint32_t DateRegister;
+} time_date_reg_t;
+#endif  /* DATETIMEREG */
+
 /* Status register to follow state */
 extern volatile uint32_t MyStateRegister;
 
 /* Time and date global variables */
-extern volatile uint32_t TimeRegister;
-extern volatile uint32_t DateRegister;
-
-extern uint8_t ToEEPROM[TO_EPR_LENGTH];
+extern volatile time_date_reg_t TimeDateRegS;
+extern volatile uint8_t *PtrTimDatS;
+extern volatile uint8_t *PtrTDTimeR;
 extern volatile uint8_t uartsend;
 extern volatile uint8_t CharToReceive;
