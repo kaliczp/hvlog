@@ -243,7 +243,9 @@ int main(void)
 		{
 		  TimeDateRegS.align = TO_EPR_LENGTH;
 		  TimeDateRegS.SPICommand = READ;
-		  TimeDateRegS.SPIAddress[3] = ReadSPIEEPROMaddr & 0xFF;
+		  TimeDateRegS.SPIAddress[0] = (ReadSPIEEPROMaddr >> 16) & 0xFF;
+		  TimeDateRegS.SPIAddress[1] = (ReadSPIEEPROMaddr >> 8) & 0xFF;
+		  TimeDateRegS.SPIAddress[2] = ReadSPIEEPROMaddr & 0xFF;
 		  Write_SPI(PtrTDSPICR, TO_EPR_LENGTH);
 		  ReadSPIEEPROMaddr = IncreaseSPIEEPROMaddr(ReadSPIEEPROMaddr, 4);
 		  MyStateRegister |= UART_PROGRESS;
@@ -272,7 +274,7 @@ int main(void)
 		  TimeDateRegS.SPICommand = RDSR;
 		  Write_SPI(PtrTDSPICR, 2);
 		}
-	      while (TimeDateRegS.SPIAddress > 0);
+	      while (TimeDateRegS.SPIAddress[0] > 0);
 	      DeconfigureLPTIM1();
 	      ReadSPIEEPROMaddr = LastReadSPIEEPROMaddr;
 	      MyStateRegister |= SPI_READROM;
@@ -336,11 +338,11 @@ void StoreDateTime()
   // Read Status Reg
   TimeDateRegS.SPICommand = RDSR;
   Write_SPI(PtrTDSPICR, 2);
-  if((TimeDateRegS.SPIAddress[1] & (WEL)) == (WEL))
+  if((TimeDateRegS.SPIAddress[0] & (WEL)) == (WEL))
     {
       // Save data to SPIEEPROM
       TimeDateRegS.SPICommand = WRITE;
- TimeDateRegS.SPIAddress[0] = (SPIEEPROMaddr >> 16) & 0xFF;
+      TimeDateRegS.SPIAddress[0] = (SPIEEPROMaddr >> 16) & 0xFF;
       TimeDateRegS.SPIAddress[1] = (SPIEEPROMaddr >> 8) & 0xFF;
       TimeDateRegS.SPIAddress[2] = SPIEEPROMaddr & 0xFF;
       if(pagebarrier == 0)
@@ -365,14 +367,14 @@ void StoreDateTime()
 	      TimeDateRegS.SPICommand = RDSR;
 	      Write_SPI(PtrTDSPICR, 2);
 	    }
-	  while (TimeDateRegS.SPIAddress > 0);
+	  while (TimeDateRegS.SPIAddress[0] > 0);
 	  DeconfigureLPTIM1();
 	  TimeDateRegS.SPICommand = WREN;
 	  Write_SPI(PtrTDSPICR, 1);
 	  TimeDateRegS.SPICommand = WRITE;
 	  TimeDateRegS.SPIAddress[0] = ((SPIEEPROMaddr + 4) >> 16) & 0xFF;
-	  TimeDateRegS.SPIAddress[0] = ((SPIEEPROMaddr + 4) >> 8) & 0xFF;
-	  TimeDateRegS.SPIAddress[0] = (SPIEEPROMaddr + 4) & 0xFF;
+	  TimeDateRegS.SPIAddress[1] = ((SPIEEPROMaddr + 4) >> 8) & 0xFF;
+	  TimeDateRegS.SPIAddress[2] = (SPIEEPROMaddr + 4) & 0xFF;
 	  TimeDateRegS.TimeRegister = TimeDateRegS.DateRegister;
 	  Write_SPI(PtrTDSPICR, TO_EPR_LENGTH);
 	  SPIEEPROMaddr = IncreaseSPIEEPROMaddr(SPIEEPROMaddr, spibufflength);

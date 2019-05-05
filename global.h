@@ -44,6 +44,7 @@
 #define FIRST_DATA       4          /* The first data after SPI address */
 #define UFIRST_DATA      9          /* The first data after SPI address */
 #define TO_EPR_LENGTH    12
+#define TO_EPR_ADDRESSLENGTH      3 /* SPI address in bytes */
 #define TSTO_EPR_LENGTH    16
 #define SPI_EPR_PG_SUB1  255        /* SPI EEPROM page size in bytes - 1 */
 #define SPIEEPROM_LENGTH 131072     /* SPI EEPROM size in bytes (128 Kbytes, 1Mbit) */
@@ -67,7 +68,7 @@ typedef struct
   uint8_t align;
   uint8_t padalign[3];
   uint8_t SPICommand;
-  uint8_t SPIAddress[3];
+  uint8_t SPIAddress[TO_EPR_ADDRESSLENGTH];
   uint32_t TimeRegister;
   uint32_t DateRegister;
 } time_date_reg_t;
