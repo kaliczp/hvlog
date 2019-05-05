@@ -123,7 +123,7 @@ void Deconfigure_SPI1(void)
   RCC->APB2ENR &= ~(RCC_APB2ENR_SPI1EN);
 }
 
-void Write_SPI(uint8_t *buff, uint8_t length)
+void Write_SPI(volatile uint8_t *buff, uint8_t length)
 {
   Configure_SPI1();
   Activate_SPI1();
@@ -134,11 +134,11 @@ void Write_SPI(uint8_t *buff, uint8_t length)
       while((SPI1->SR & SPI_SR_TXE) != SPI_SR_TXE)
 	{
 	}
-      *(uint8_t *)&(SPI1->DR) = buff[i];
+      *(uint8_t *)&(SPI1->DR) = *buff;
       while((SPI1->SR & SPI_SR_RXNE) != SPI_SR_RXNE)
 	{
 	}
-      buff[i] = SPI1->DR;
+      *buff++ = SPI1->DR;
     }
   while((SPI1->SR & SPI_SR_TXE) != SPI_SR_TXE)
     {
