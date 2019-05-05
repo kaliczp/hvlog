@@ -44,10 +44,10 @@
 #define FIRST_DATA       3          /* The first data after SPI address */
 #define UFIRST_DATA      4          /* The first data after SPI address */
 #define TO_EPR_LENGTH    7
-#define TO_EPR_ADDRESSLENGTH      2 /* SPI address in bytes */
+#define TO_EPR_ADDRESSLENGTH      1 /* SPI address in bytes */
 #define TSTO_EPR_LENGTH    11
-#define SPI_EPR_PG_SUB1  127        /* SPI EEPROM page size in bytes - 1 */
-#define SPIEEPROM_LENGTH 65536     /* SPI EEPROM size in bytes (64 Kbytes, 512Kbit) */
+#define SPI_EPR_PG_SUB1  15        /* SPI EEPROM page size in bytes - 1 */
+#define SPIEEPROM_LENGTH 512     /* SPI EEPROM size in bytes (512 bytes, 4Kbit) */
 
 #define SPI_IS_STANDALONE     1
 #define SPI_IS_NOT_STANDALONE     0
@@ -63,27 +63,23 @@
 /* Type definition */
 #ifndef DATETIMEREG
 #define DATETIMEREG
-typedef union
+typedef struct
 {
-  struct {
-    uint8_t align;
-    uint8_t SPICommand;
-    uint8_t SPIAddress[TO_EPR_ADDRESSLENGTH];
-    uint32_t TimeRegister;
-    uint32_t DateRegister;
-  } TUp;
-  /* Add one byte to align */
-  uint8_t ToEEPROM[TSTO_EPR_LENGTH + 1];
-} time_date_reg;
+  uint8_t align;
+  uint8_t padalign;
+  uint8_t SPICommand;
+  uint8_t SPIAddress;
+  uint32_t TimeRegister;
+  uint32_t DateRegister;
+} time_date_reg_t;
 #endif  /* DATETIMEREG */
 
 /* Status register to follow state */
 extern volatile uint32_t MyStateRegister;
 
 /* Time and date global variables */
-extern volatile uint32_t TimeRegister;
-extern volatile uint32_t DateRegister;
-extern uint8_t ToEEPROM[TO_EPR_LENGTH];
-extern volatile time_date_reg TimeRegU;
+extern volatile time_date_reg_t TimeDateRegS;
+extern volatile uint8_t *PtrTimDatS;
+extern volatile uint8_t *PtrTDTimeR;
 extern volatile uint8_t uartsend;
 extern volatile uint8_t CharToReceive;

@@ -160,9 +160,9 @@ void RTC_IRQHandler(void)
     {
       RTC->ISR &= ~(RTC_ISR_TAMP2F); /* clear tamper flag */
       EXTI->PR |= EXTI_PR_PR19; /* clear exti line 19 flag */
-      TimeRegister = RTC->TSSSR; /* First subsecond register saved */
-      TimeRegister |= (RTC->TSTR << 8);
-      DateRegister = RTC->TSDR;
+      TimeDateRegS.TimeRegister = __REV(RTC->TSSSR); /* First subsecond register saved */
+      TimeDateRegS.TimeRegister |= __REV((RTC->TSTR & 0x3FFFFF) << 8); /* AM/PM skip */
+      TimeDateRegS.DateRegister = __REV(RTC->TSDR & 0x1FFF); /* Mask out weekday */
       RTC->ISR &= ~(RTC_ISR_TSF); /* clear timestamp flag */
       RTC->ISR &= ~(RTC_ISR_TSOVF); /* clear timestamp overflow flag */
       MyStateRegister |= TIMESTAMP_CAPTURED;

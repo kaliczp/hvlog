@@ -27,8 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 volatile uint32_t MyStateRegister;
 
 /* Timestamp values */
-volatile uint32_t TimeRegister;
-volatile uint32_t DateRegister;
 const uint32_t FWTime = CURR_TIM;
 const uint32_t FWDate = CURR_DAT;
 
@@ -39,9 +37,12 @@ uint32_t ReadSPIEEPROMaddr;
 uint8_t FromLowPower;
 volatile uint8_t uartsend = FIRST_DATA;
 volatile uint8_t CharToReceive;
-uint8_t ToEEPROM[TO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x0, 0x17, 0x03, 0x15};
 
-volatile time_date_reg TimeRegU;
+volatile time_date_reg_t TimeDateRegS;
+volatile uint8_t *PtrTimDatS = (uint8_t *)&TimeDateRegS;
+volatile uint8_t *PtrTDSPICR = (uint8_t *)&TimeDateRegS.SPICommand;
+volatile uint8_t *PtrTDTimeR = (uint8_t *)&TimeDateRegS.TimeRegister;
+volatile uint8_t *PtrTDDateR = (uint8_t *)&TimeDateRegS.DateRegister;
 
 int main(void)
 {
@@ -87,19 +88,20 @@ int main(void)
 		  MyStateRegister |= STORE_TIMESTAMP_DAT;
 		}
 	      Deconfigure_GPIOB_Test();
-	      /* Mask out weekday to compare */
-	      DateRegister &= 0x1FFF;
 	      /* Backup time year masked */
-	      if((RTC->BKP2R & 0x1FFF) != DateRegister)
+	      if((RTC->BKP2R & 0xFF1F0000) != TimeDateRegS.DateRegister)
 		{
 		  MyStateRegister |= STORE_TIMESTAMP_DAT;
 		}
+	      RTC->BKP1R = TimeDateRegS.TimeRegister;
+	      if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
+		{
+		  RTC->BKP2R = TimeDateRegS.DateRegister;
+		}
 	      StoreDateTime();
-	      RTC->BKP1R = TimeRegister;
 	      if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
 		{
 		  MyStateRegister &= ~(STORE_TIMESTAMP_DAT);
-		  RTC->BKP2R = DateRegister;
 		}
 
 	    }
@@ -145,21 +147,21 @@ int main(void)
 		    {
 		      /* Wait until shadow register refresh */
 		      RTC->ISR &= ~(RTC_ISR_RSF);
-		      TimeRegU.TUp.align = TSTO_EPR_LENGTH;
+		      TimeDateRegS.align = TSTO_EPR_LENGTH;
 		      while((RTC->ISR & RTC_ISR_RSF) != RTC_ISR_RSF)
 			{
 			}
 		      /* Read and send current time, with subsecond */
-		      TimeRegU.TUp.TimeRegister = __REV(RTC->SSR);
+		      TimeDateRegS.TimeRegister = __REV(RTC->SSR);
 		      /* Reverse byte order */
-		      TimeRegU.TUp.TimeRegister |= __REV(RTC->TR << 8);
+		      TimeDateRegS.TimeRegister |= __REV(RTC->TR << 8);
 		      /* Shadow register is frozen until read DR */
-		      TimeRegU.TUp.DateRegister = __REV(RTC->DR);
+		      TimeDateRegS.DateRegister = __REV(RTC->DR);
 		      MyStateRegister |= UART_PROGRESS;
 		      EnableTransmit_USART();
 		      /* Start UART transmission */
-		      uartsend = UFIRST_DATA;
-		      USART1->TDR = TimeRegU.ToEEPROM[uartsend++];
+		      uartsend = UFIRST_DATA + 1;
+		      USART1->TDR = *PtrTDTimeR++;
  		      /* Enable TXE interrupt */
 		      USART1->CR1 |= USART_CR1_TXEIE;
 		    }
@@ -170,78 +172,54 @@ int main(void)
 		    }
 		}
 	    }
-	  else if(((MyStateRegister & (UART_SEND_HEADER)) == (UART_SEND_HEADER)) && (uartsend == FIRST_DATA))
+	  else if(((MyStateRegister & (UART_SEND_HEADER)) == (UART_SEND_HEADER)) && (uartsend == UFIRST_DATA))
 	    {
 	      /* Send header with compilation date-time and chip UID */
 	      MyStateRegister++;
 	      switch(MyStateRegister & COUNTER_MSK)
 		{
-		case 1: /* Send firmware date */
+		case 1: /* Send firmware time and date */
 		  {
 		    EnableTransmit_USART();
-		    ToEEPROM[FIRST_DATA] = 0xC0;
-		    ToEEPROM[FIRST_DATA + 1] = (FWDate >> 16) & 0xFF;
-		    ToEEPROM[FIRST_DATA + 2] = (FWDate >> 8) & 0xFF;
-		    ToEEPROM[FIRST_DATA + 3] = FWDate & 0xFF;
+		    TimeDateRegS.align = TSTO_EPR_LENGTH;
+		    TimeDateRegS.TimeRegister = __REV(FWTime);
+		    TimeDateRegS.DateRegister = __REV(FWDate);
+		    *PtrTDDateR = 0xC0;
 		  }
 		  break;
-		case 2: /* Send firmware time */
+		case 2: /* Send UID first and second word */
 		  {
-		    /* Send of timestamp finished */
-		    ToEEPROM[FIRST_DATA] = (FWTime >> 16) & 0xFF;
-		    ToEEPROM[FIRST_DATA + 1] = (FWTime >> 8) & 0xFF;
-		    ToEEPROM[FIRST_DATA + 2] = FWTime & 0xFF;
-		    ToEEPROM[FIRST_DATA + 3] = 0;
-		  }
-		  break;
-		case 3: /* Send UID first word */
-		  {
-		    /* Wafer number  RM0377 28.2*/
-		    ToEEPROM[FIRST_DATA] = (*((volatile uint8_t *)(UID_BASE + 0x03)));
 		    /* LOT number 95:72 */
-		    ToEEPROM[FIRST_DATA + 1] = (*((volatile uint8_t *)(UID_BASE + 0x17)));
-		    ToEEPROM[FIRST_DATA + 2] = (*((volatile uint8_t *)(UID_BASE + 0x16)));
-		    ToEEPROM[FIRST_DATA + 3] = (*((volatile uint8_t *)(UID_BASE + 0x15)));
-		  }
-		  break;
-		case 4: /* Send UID second word */
-		  {
+		    TimeDateRegS.TimeRegister = (*((volatile uint32_t *)(UID_BASE + 0x14)));
+		    /* Wafer number  RM0377 28.2*/
+		    *PtrTDTimeR = (*((volatile uint8_t *)(UID_BASE + 0x03)));
 		    /* LOT number 71:40 */
-		    ToEEPROM[FIRST_DATA] = (*((volatile uint8_t *)(UID_BASE + 0x14)));
-		    ToEEPROM[FIRST_DATA + 1] = (*((volatile uint8_t *)(UID_BASE + 0x07)));
-		    ToEEPROM[FIRST_DATA + 2] = (*((volatile uint8_t *)(UID_BASE + 0x06)));
-		    ToEEPROM[FIRST_DATA + 3] = (*((volatile uint8_t *)(UID_BASE + 0x05)));
+		    TimeDateRegS.DateRegister = (*((volatile uint32_t *)(UID_BASE + 0x04)));
+		    *PtrTDDateR = (*((volatile uint8_t *)(UID_BASE + 0x14)));
 		  }
 		  break;
-		case 5: /* Send UID third word */
-		  {
-		    /* LOT number 39:00 */
-		    ToEEPROM[FIRST_DATA] = (*((volatile uint8_t *)(UID_BASE + 0x04)));
-		    ToEEPROM[FIRST_DATA + 1] = (*((volatile uint8_t *)(UID_BASE + 0x02)));
-		    ToEEPROM[FIRST_DATA + 2] = (*((volatile uint8_t *)(UID_BASE + 0x01)));
-		    ToEEPROM[FIRST_DATA + 3] = (*((volatile uint8_t *)(UID_BASE + 0x00)));
-		  }
-		  break;
-		case 6: /* Send UID third word */
+		case 3: /* Send UID third word */
 		  {
 		    /* Clear Counter */
 		    MyStateRegister &= ~(COUNTER_MSK);
 		    MyStateRegister &= ~(UART_SEND_HEADER);
-		    ToEEPROM[FIRST_DATA] = 0xFF;
-		    ToEEPROM[FIRST_DATA + 1] = 0xFF;
-		    ToEEPROM[FIRST_DATA + 2] = 0xFF;
-		    ToEEPROM[FIRST_DATA + 3] = 0xFF;
+		    /* LOT number 39:00 */
+		    TimeDateRegS.TimeRegister = (*((volatile uint32_t *)(UID_BASE + 0x00)));
+		    *PtrTDTimeR = (*((volatile uint8_t *)(UID_BASE + 0x04)));
+		    /* Header separator */
+		    TimeDateRegS.DateRegister = 0xFFFFFFFF;
 		    /* Continue with data */
 		    MyStateRegister |= UART_PROGRESS;
 		  }
 		  break;
 		}
 	      /* Start UART transmission */
-	      USART1->TDR = ToEEPROM[uartsend++];
+	      uartsend = UFIRST_DATA + 1;
+	      USART1->TDR = *PtrTDTimeR++;
 	      /* Enable TXE interrupt */
 	      USART1->CR1 |= USART_CR1_TXEIE;
 	    }
-	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && (uartsend == FIRST_DATA))
+	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && (uartsend == UFIRST_DATA))
 	    {
 	      MyStateRegister &= ~(UART_PROGRESS);
 	      DisableTransmit_USART();
@@ -263,15 +241,16 @@ int main(void)
 	      MyStateRegister &= ~(SPI_READROM);
 	      if(ReadSPIEEPROMaddr != SPIEEPROMaddr)
 		{
-		  ToEEPROM[0] = READ;
-		  ToEEPROM[1] = (ReadSPIEEPROMaddr >> 8) & 0xFF;
-		  ToEEPROM[2] = ReadSPIEEPROMaddr & 0xFF;
-		  Write_SPI(ToEEPROM, TO_EPR_LENGTH);
+		  TimeDateRegS.align = TO_EPR_LENGTH;
+		  TimeDateRegS.SPICommand = READ;
+		  TimeDateRegS.SPIAddress = ReadSPIEEPROMaddr & 0xFF;
+		  Write_SPI(PtrTDSPICR, TO_EPR_LENGTH);
 		  ReadSPIEEPROMaddr = IncreaseSPIEEPROMaddr(ReadSPIEEPROMaddr, 4);
 		  MyStateRegister |= UART_PROGRESS;
 		  EnableTransmit_USART();
 		  /* Start UART transmission */
-		  USART1->TDR = ToEEPROM[uartsend++];
+		  uartsend = UFIRST_DATA + 1;
+		  USART1->TDR = *PtrTDTimeR++;
  		  /* Enable TXE interrupt */
 		  USART1->CR1 |= USART_CR1_TXEIE;
 		}
@@ -290,10 +269,10 @@ int main(void)
 		  StartLPTIM1(35);
 		  Configure_Lpwr(ModeSleep);
 		  // Read Status Reg
-		  ToEEPROM[0] = RDSR;
-		  Write_SPI(ToEEPROM, 2);
+		  TimeDateRegS.SPICommand = RDSR;
+		  Write_SPI(PtrTDSPICR, 2);
 		}
-	      while (ToEEPROM[1] > 0);
+	      while (TimeDateRegS.SPIAddress > 0);
 	      DeconfigureLPTIM1();
 	      ReadSPIEEPROMaddr = LastReadSPIEEPROMaddr;
 	      MyStateRegister |= SPI_READROM;
@@ -328,30 +307,22 @@ int main(void)
 }
 void StoreDateTime()
 {
-  uint8_t TSToEEPROM[TSTO_EPR_LENGTH] = {WRITE, 0x0, 0x0, 0x21, 0x31, 0x50, 0xd8, 0x40, 0x19, 0x04, 0x30};
   uint8_t spibufflength = 4;
   uint8_t pagebarrier = 0;
 
-  TSToEEPROM[FIRST_DATA] = (TimeRegister >> 24) & 0x3F; // AM/PM skip
-  TSToEEPROM[FIRST_DATA + 1] = (TimeRegister >> 16) & 0xFF;
-  TSToEEPROM[FIRST_DATA + 2] = (TimeRegister >> 8) & 0xFF;
-  TSToEEPROM[FIRST_DATA + 3] = TimeRegister & 0xFF;
   if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
     {
       spibufflength = 8;
       if((MyStateRegister & (INIT_UART)) == (INIT_UART))
 	{
-	  TSToEEPROM[FIRST_DATA + 4] = 0xC0; // Data flag & during read
+	  *PtrTDDateR = 0xC0; // Data flag & during read
 	}
       else
 	{
-	  TSToEEPROM[FIRST_DATA + 4] = 0x40; // Date flag
+	  *PtrTDDateR = 0x40; // Date flag
 	}
       /* Read date register and store only year */
-      DateRegister |= (RTC->DR & 0xFF0000);
-      TSToEEPROM[FIRST_DATA + 5] = (DateRegister >> 16) & 0xFF;
-      TSToEEPROM[FIRST_DATA + 6] = (DateRegister >> 8) & 0xFF;
-      TSToEEPROM[FIRST_DATA + 7] = DateRegister & 0xFF;
+      TimeDateRegS.DateRegister |= __REV(RTC->DR & 0xFF0000);
       /* Test the page barrier! SPI_EPR_PG_SUB1 page size in bytes */
       /* It uses binary modulo */
       if(((SPIEEPROMaddr + 4) & SPI_EPR_PG_SUB1) == 0)
@@ -360,20 +331,19 @@ void StoreDateTime()
 	}
     }
   Configure_GPIO_SPI1();
-  TSToEEPROM[0] = WREN;
-  Write_SPI(TSToEEPROM, 1);
+  TimeDateRegS.SPICommand = WREN;
+  Write_SPI(PtrTDSPICR, 1);
   // Read Status Reg
-  TSToEEPROM[0] = RDSR;
-  Write_SPI(TSToEEPROM, 2);
-  if((TSToEEPROM[1] & (WEL)) == (WEL))
+  TimeDateRegS.SPICommand = RDSR;
+  Write_SPI(PtrTDSPICR, 2);
+  if((TimeDateRegS.SPIAddress & (WEL)) == (WEL))
     {
       // Save data to SPIEEPROM
-      TSToEEPROM[0] = WRITE;
-      TSToEEPROM[1] = (SPIEEPROMaddr >> 8) & 0xFF;
-      TSToEEPROM[2] = SPIEEPROMaddr & 0xFF;
+      TimeDateRegS.SPICommand = WRITE;
+      TimeDateRegS.SPIAddress = SPIEEPROMaddr & 0xFF;
       if(pagebarrier == 0)
 	{
-	  Write_SPI(TSToEEPROM, TSTO_EPR_LENGTH);
+	  Write_SPI(PtrTDSPICR, TSTO_EPR_LENGTH);
 	  SPIEEPROMaddr = IncreaseSPIEEPROMaddr(SPIEEPROMaddr, spibufflength);
 	}
       /* if at the barrier divide date and time */
@@ -381,7 +351,7 @@ void StoreDateTime()
       else
 	{
 	  spibufflength = 4;
-	  Write_SPI(TSToEEPROM, TO_EPR_LENGTH);
+	  Write_SPI(PtrTDSPICR, TO_EPR_LENGTH);
 	  SPIEEPROMaddr = IncreaseSPIEEPROMaddr(SPIEEPROMaddr, spibufflength);
 	  /* Wait till succesful write */
 	  ConfigureLPTIM1();
@@ -390,21 +360,17 @@ void StoreDateTime()
 	      StartLPTIM1(35);
 	      Configure_Lpwr(ModeSleep);
 	      // Read Status Reg
-	      ToEEPROM[0] = RDSR;
-	      Write_SPI(ToEEPROM, 2);
+	      TimeDateRegS.SPICommand = RDSR;
+	      Write_SPI(PtrTDSPICR, 2);
 	    }
-	  while (ToEEPROM[1] > 0);
+	  while (TimeDateRegS.SPIAddress > 0);
 	  DeconfigureLPTIM1();
-	  TSToEEPROM[0] = WREN;
-	  Write_SPI(TSToEEPROM, 1);
-	  TSToEEPROM[0] = WRITE;
-	  TSToEEPROM[1] = ((SPIEEPROMaddr + 4) >> 8) & 0xFF;
-	  TSToEEPROM[2] = (SPIEEPROMaddr + 4) & 0xFF;
-	  TSToEEPROM[FIRST_DATA] = TSToEEPROM[FIRST_DATA + 4];
-	  TSToEEPROM[FIRST_DATA + 1] = TSToEEPROM[FIRST_DATA + 5];
-	  TSToEEPROM[FIRST_DATA + 2] = TSToEEPROM[FIRST_DATA + 6];
-	  TSToEEPROM[FIRST_DATA + 3] = TSToEEPROM[FIRST_DATA + 7];
-	  Write_SPI(TSToEEPROM, TO_EPR_LENGTH);
+	  TimeDateRegS.SPICommand = WREN;
+	  Write_SPI(PtrTDSPICR, 1);
+	  TimeDateRegS.SPICommand = WRITE;
+	  TimeDateRegS.SPIAddress = (SPIEEPROMaddr + 4) & 0xFF;
+	  TimeDateRegS.TimeRegister = TimeDateRegS.DateRegister;
+	  Write_SPI(PtrTDSPICR, TO_EPR_LENGTH);
 	  SPIEEPROMaddr = IncreaseSPIEEPROMaddr(SPIEEPROMaddr, spibufflength);
 	}
       RTC->BKP0R = SPIEEPROMaddr;
@@ -441,43 +407,43 @@ void ProcessDateTimeSetting(void)
   {
   case 1: /* First char */
     {
-      TimeRegU.ToEEPROM[5] = CharToReceive << 4;
+      *(PtrTDTimeR + 1) = CharToReceive << 4;
     }
     break;
   case 2: /* Second char */
     {
-      TimeRegU.ToEEPROM[5] |= CharToReceive;
+      *(PtrTDTimeR + 1) |= CharToReceive;
     }
     break;
   case 3: /* Third char */
     {
-      TimeRegU.ToEEPROM[6] = CharToReceive << 4;
+      *(PtrTDTimeR + 2) = CharToReceive << 4;
     }
     break;
   case 4: /* Fourth char */
     {
-      TimeRegU.ToEEPROM[6] |= CharToReceive;
+      *(PtrTDTimeR + 2) |= CharToReceive;
     }
     break;
   case 5: /* Fifth char */
     {
-      TimeRegU.ToEEPROM[7] = CharToReceive << 4;
+      *(PtrTDTimeR + 3) = CharToReceive << 4;
     }
     break;
   case 6: /* Sixth char */
     {
-      TimeRegU.ToEEPROM[7] |= CharToReceive;
+      *(PtrTDTimeR + 3) |= CharToReceive;
       /* After the sixth character set value */
       if((MyStateRegister & (SET_TIME)) == (SET_TIME)) {
-	Init_RTC(TimeRegU.TUp.TimeRegister, TimeRegU.TUp.DateRegister);
+	Init_RTC(TimeDateRegS.TimeRegister, TimeDateRegS.DateRegister);
 	/* Save date-and-time of setting */
-	TimeRegU.TUp.TimeRegister = TimeRegU.TUp.TimeRegister << 8;
-	RTC->BKP1R = TimeRegU.TUp.TimeRegister;
-	RTC->BKP2R = TimeRegU.TUp.DateRegister;
+	TimeDateRegS.TimeRegister = TimeDateRegS.TimeRegister << 8;
+	RTC->BKP1R = TimeDateRegS.TimeRegister;
+	RTC->BKP2R = TimeDateRegS.DateRegister;
 	MyStateRegister &= ~(SET_DATE);
 	MyStateRegister &= ~(SET_TIME);
       } else {
-	TimeRegU.TUp.DateRegister = TimeRegU.TUp.TimeRegister;
+	TimeDateRegS.DateRegister = TimeDateRegS.TimeRegister;
 	MyStateRegister |= SET_TIME;
       }
       /* Clear Counter */
