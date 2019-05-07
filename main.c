@@ -155,8 +155,8 @@ int main(void)
 		      TimeDateRegS.TimeRegister = __REV(RTC->SSR);
 		      /* Reverse byte order */
 		      TimeDateRegS.TimeRegister |= __REV(RTC->TR << 8);
-		      /* Shadow register is frozen until read DR */
-		      TimeDateRegS.DateRegister = __REV(RTC->DR);
+		      /* Reverse byte order, mask out weekday*/
+		      TimeDateRegS.DateRegister = __REV(RTC->DR & 0xFF1FFF);
 		      MyStateRegister |= UART_PROGRESS;
 		      EnableTransmit_USART();
 		      /* Start UART transmission */
