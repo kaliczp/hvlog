@@ -3,7 +3,7 @@
 
 * Compile
 
-Compile with low power debug and actual time and date.
+Compile with low power debug and actual time, date and RTC calibration parameter.
 #+BEGIN_SRC sh
-make UDEFS=-DDEBUG UDEFS+=-DCURR_TIM=0x00220630 UDEFS+=-DCURR_DAT=0x00170315
+make UDEFS=-DDEBUG UDEFS+=-DCURR_TIM=0x00182130 UDEFS+=-DCURR_DAT=0x00190513 UDEFS+=-DRTC_CALM
 #+END_SRC
