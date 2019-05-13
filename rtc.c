@@ -135,6 +135,27 @@ void Init_RTC(uint32_t Time, uint32_t Date)
   RTC->WPR = 0xFF; /* (7) */
 }
 
+void Set_RTC_CALR(uint8_t val_calr)
+{
+  /* (1) Write access for RTC registers */
+  /* (2) Check init phase disabled ? */
+  /* (3) If enabled disable init phase */
+  /* (4) Wait until it's allow to modify calibartion register */
+  /* (5) Set calibration */
+  /* (6) Disable write access for RTC registers */
+  RTC->WPR = 0xCA; /* (1) */ 
+  RTC->WPR = 0x53; /* (1) */
+  if((RTC->ISR & RTC_ISR_INITF) == RTC_ISR_INITF) {
+    RTC->ISR &=~ RTC_ISR_INIT; /* (3) */
+  }
+  while((RTC->ISR & RTC_ISR_RECALPF) == RTC_ISR_RECALPF) /* (4) */
+    {
+      /* add time out here for a robust application */
+    }
+  RTC->CALR = val_calr; /* (5) */
+  RTC->WPR = 0xFF; /* (6) */
+}
+
 void RTC_ReEnableTamperIRQ(void)
 {
   /* (1) RTC IRQ fired during data processing? */
