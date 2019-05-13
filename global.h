@@ -7,6 +7,11 @@
 #define CURR_DAT         0x00170315
 #endif
 
+#ifndef RTC_CALM
+#define RTC_CALM         0x55 /* It is 9 bit in the register */
+#endif
+
+
 #ifndef MACROS_DEFINED
 #define MACROS_DEFINED
 

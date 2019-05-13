@@ -65,6 +65,7 @@ int main(void)
     {
       Configure_RTC_Func();
       Init_RTC(__REV(FWTime), __REV(FWDate));
+      Set_RTC_CALR(RTC_CALM);
     }
   /* Important variables. Loaded from RTC domain */
   SPIEEPROMaddr =  RTC->BKP0R;
