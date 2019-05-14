@@ -158,7 +158,7 @@ void USART1_IRQHandler(void)
     if(uartsend > TimeDateRegS.align)
     {
       uartsend = UFIRST_DATA;
-      PtrTDTimeR = (uint8_t *)&TimeDateRegS + 4;
+      PtrTDTimeR = (uint8_t *)&TimeDateRegS.TimeRegister;
       USART1->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
       /* Activate transmit disable flag */
     }
