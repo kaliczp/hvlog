@@ -181,7 +181,7 @@ void USART1_IRQHandler(void)
   else
   {
     /* Clear all possible flags */
-    USART2->ICR |= USART_ICR_PECF | USART_ICR_FECF | USART_ICR_NCF | \
+    USART1->ICR |= USART_ICR_PECF | USART_ICR_FECF | USART_ICR_NCF | \
       USART_ICR_ORECF | USART_ICR_IDLECF | USART_ICR_TCCF | USART_ICR_CTSCF;
   }
 }
