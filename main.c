@@ -35,7 +35,7 @@ uint32_t LastReadSPIEEPROMaddr;
 uint32_t ReadSPIEEPROMaddr;
 
 uint8_t FromLowPower;
-volatile uint8_t uartsend = FIRST_DATA;
+volatile uint8_t uartsend;
 volatile uint8_t CharToReceive;
 
 volatile time_date_reg_t TimeDateRegS;
@@ -126,7 +126,7 @@ int main(void)
 		    {
 		      /* Keep readout date and time as the first record 
 			 of next readout */
-		      LastReadSPIEEPROMaddr = SPIEEPROMaddr - 8;
+		      LastReadSPIEEPROMaddr = SPIEEPROMaddr - TIME_DATE_LENGTH;
 		      RTC->BKP3R =  LastReadSPIEEPROMaddr;
 		      ReadSPIEEPROMaddr = LastReadSPIEEPROMaddr;
 		    }
@@ -137,7 +137,7 @@ int main(void)
                     }
 		  else if(CharToReceive == 102) /* 'f' letter code */
 		    {
-		      LastReadSPIEEPROMaddr = SPIEEPROMaddr + 4;
+		      LastReadSPIEEPROMaddr = SPIEEPROMaddr + TIME_LENGTH;
                       MyStateRegister |= UART_SEND_HEADER;
                     }
 		  else if(CharToReceive == 98) /* 'b' letter code */
@@ -148,7 +148,7 @@ int main(void)
 		    {
 		      /* Wait until shadow register refresh */
 		      RTC->ISR &= ~(RTC_ISR_RSF);
-		      TimeDateRegS.align = TSTO_EPR_LENGTH;
+		      TimeDateRegS.length = TIME_DATE_LENGTH;
 		      while((RTC->ISR & RTC_ISR_RSF) != RTC_ISR_RSF)
 			{
 			}
@@ -161,7 +161,7 @@ int main(void)
 		      MyStateRegister |= UART_PROGRESS;
 		      EnableTransmit_USART();
 		      /* Start UART transmission */
-		      uartsend = UFIRST_DATA + 1;
+		      uartsend = 1;
 		      USART1->TDR = *PtrTDTimeR++;
  		      /* Enable TXE interrupt */
 		      USART1->CR1 |= USART_CR1_TXEIE;
@@ -173,7 +173,7 @@ int main(void)
 		    }
 		}
 	    }
-	  else if(((MyStateRegister & (UART_SEND_HEADER)) == (UART_SEND_HEADER)) && (uartsend == UFIRST_DATA))
+	  else if(((MyStateRegister & (UART_SEND_HEADER)) == (UART_SEND_HEADER)) && (uartsend == 0))
 	    {
 	      /* Send header with compilation date-time and chip UID */
 	      MyStateRegister++;
@@ -182,7 +182,7 @@ int main(void)
 		case 1: /* Send firmware time and date */
 		  {
 		    EnableTransmit_USART();
-		    TimeDateRegS.align = TSTO_EPR_LENGTH;
+		    TimeDateRegS.length = TIME_DATE_LENGTH;
 		    TimeDateRegS.TimeRegister = __REV(FWTime);
 		    TimeDateRegS.DateRegister = __REV(FWDate);
 		    *PtrTDDateR = 0xC0;
@@ -215,12 +215,12 @@ int main(void)
 		  break;
 		}
 	      /* Start UART transmission */
-	      uartsend = UFIRST_DATA + 1;
+	      uartsend = 1;
 	      USART1->TDR = *PtrTDTimeR++;
 	      /* Enable TXE interrupt */
 	      USART1->CR1 |= USART_CR1_TXEIE;
 	    }
-	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && (uartsend == UFIRST_DATA))
+	  else if(((MyStateRegister & (UART_PROGRESS)) == (UART_PROGRESS)) && (uartsend == 0))
 	    {
 	      MyStateRegister &= ~(UART_PROGRESS);
 	      DisableTransmit_USART();
@@ -242,15 +242,15 @@ int main(void)
 	      MyStateRegister &= ~(SPI_READROM);
 	      if(ReadSPIEEPROMaddr != SPIEEPROMaddr)
 		{
-		  TimeDateRegS.align = TO_EPR_LENGTH;
+		  TimeDateRegS.length = TIME_LENGTH;
 		  TimeDateRegS.SPICommand = READ;
 		  TimeDateRegS.SPIAddress = ReadSPIEEPROMaddr & 0xFF;
 		  Write_SPI(PtrTDSPICR, TO_EPR_LENGTH);
-		  ReadSPIEEPROMaddr = IncreaseSPIEEPROMaddr(ReadSPIEEPROMaddr, 4);
+		  ReadSPIEEPROMaddr = IncreaseSPIEEPROMaddr(ReadSPIEEPROMaddr, TIME_LENGTH);
 		  MyStateRegister |= UART_PROGRESS;
 		  EnableTransmit_USART();
 		  /* Start UART transmission */
-		  uartsend = UFIRST_DATA + 1;
+		  uartsend = 1;
 		  USART1->TDR = *PtrTDTimeR++;
  		  /* Enable TXE interrupt */
 		  USART1->CR1 |= USART_CR1_TXEIE;
@@ -308,12 +308,12 @@ int main(void)
 }
 void StoreDateTime()
 {
-  uint8_t spibufflength = 4;
+  uint8_t spibufflength = TIME_LENGTH;
   uint8_t pagebarrier = 0;
 
   if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
     {
-      spibufflength = 8;
+      spibufflength = TIME_DATE_LENGTH;
       if((MyStateRegister & (INIT_UART)) == (INIT_UART))
 	{
 	  *PtrTDDateR = 0xC0; // Data flag & during read
@@ -344,14 +344,14 @@ void StoreDateTime()
       TimeDateRegS.SPIAddress = SPIEEPROMaddr & 0xFF;
       if(pagebarrier == 0)
 	{
-	  Write_SPI(PtrTDSPICR, TSTO_EPR_LENGTH);
+	  Write_SPI(PtrTDSPICR, TO_EPR_ADDRESSLENGTHwCOMMAND + spibufflength);
 	  SPIEEPROMaddr = IncreaseSPIEEPROMaddr(SPIEEPROMaddr, spibufflength);
 	}
       /* if at the barrier divide date and time */
       /* Only TO_EPR_LENGHT wiht 4 byte data */
       else
 	{
-	  spibufflength = 4;
+	  spibufflength = TIME_LENGTH;
 	  Write_SPI(PtrTDSPICR, TO_EPR_LENGTH);
 	  SPIEEPROMaddr = IncreaseSPIEEPROMaddr(SPIEEPROMaddr, spibufflength);
 	  /* Wait till succesful write */
@@ -369,7 +369,7 @@ void StoreDateTime()
 	  TimeDateRegS.SPICommand = WREN;
 	  Write_SPI(PtrTDSPICR, 1);
 	  TimeDateRegS.SPICommand = WRITE;
-	  TimeDateRegS.SPIAddress = (SPIEEPROMaddr + 4) & 0xFF;
+	  TimeDateRegS.SPIAddress = (SPIEEPROMaddr + TIME_LENGTH) & 0xFF;
 	  TimeDateRegS.TimeRegister = TimeDateRegS.DateRegister;
 	  Write_SPI(PtrTDSPICR, TO_EPR_LENGTH);
 	  SPIEEPROMaddr = IncreaseSPIEEPROMaddr(SPIEEPROMaddr, spibufflength);

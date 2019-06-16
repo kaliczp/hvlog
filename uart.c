@@ -155,9 +155,9 @@ void USART1_IRQHandler(void)
   }
   else if((USART1->ISR & USART_ISR_TC) == USART_ISR_TC)
   {
-    if(uartsend > TimeDateRegS.align)
+    if(uartsend >= TimeDateRegS.length)
     {
-      uartsend = UFIRST_DATA;
+      uartsend = 0;
       PtrTDTimeR = (uint8_t *)&TimeDateRegS.TimeRegister;
       USART1->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
       /* Activate transmit disable flag */
@@ -165,7 +165,8 @@ void USART1_IRQHandler(void)
   }
   else if((USART1->ISR & USART_ISR_TXE) == USART_ISR_TXE)
   {
-    if(uartsend == (TimeDateRegS.align))
+    uartsend++;
+    if(uartsend >= (TimeDateRegS.length))
     {
       /* (1) Disable TX register Empty interrupt */
       /* (2) Clear TC flag */
@@ -174,7 +175,6 @@ void USART1_IRQHandler(void)
       USART1->ICR |= USART_ICR_TCCF; /* (2) */
       USART1->CR1 |= USART_CR1_TCIE; /* (3) */
     }
-    uartsend++;
     /* Fill TDR with a new data and clear transmit register empty flag */
     USART1->TDR = *PtrTDTimeR++;
   }
