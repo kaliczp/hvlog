@@ -46,6 +46,7 @@
 #define WRITE            0b00000010 /* 0x02 */
 #define READ             0b00000011 /* 0x03 */
 #define WEL              0b00000010 /* Write enable latch */
+#define WIP              0b00000001 /* Write in progress bit */
 #define TIME_LENGTH      4          /* Time lenght in bytes */
 #define TIME_DATE_LENGTH 8          /* Time and date lenght in bytes */
 #define TO_EPR_ADDRESSLENGTH      3 /* SPI address in bytes */

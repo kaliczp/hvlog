@@ -275,7 +275,7 @@ int main(void)
 		  TimeDateRegS.SPICommand = RDSR;
 		  Write_SPI(PtrTDSPICR, 2);
 		}
-	      while (TimeDateRegS.SPIAddress[0] > 0);
+	      while ((TimeDateRegS.SPIAddress[0] & (WIP)) == (WIP));
 	      DeconfigureLPTIM1();
 	      ReadSPIEEPROMaddr = LastReadSPIEEPROMaddr;
 	      MyStateRegister |= SPI_READROM;
@@ -368,7 +368,7 @@ void StoreDateTime()
 	      TimeDateRegS.SPICommand = RDSR;
 	      Write_SPI(PtrTDSPICR, 2);
 	    }
-	  while (TimeDateRegS.SPIAddress[0] > 0);
+	  while ((TimeDateRegS.SPIAddress[0] & (WIP)) == (WIP));
 	  DeconfigureLPTIM1();
 	  TimeDateRegS.SPICommand = WREN;
 	  Write_SPI(PtrTDSPICR, 1);
