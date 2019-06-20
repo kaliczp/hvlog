@@ -43,6 +43,9 @@ volatile uint8_t *PtrTimDatS = (uint8_t *)&TimeDateRegS;
 volatile uint8_t *PtrTDSPICR = (uint8_t *)&TimeDateRegS.SPICommand;
 volatile uint8_t *PtrTDTimeR = (uint8_t *)&TimeDateRegS.TimeRegister;
 volatile uint8_t *PtrTDDateR = (uint8_t *)&TimeDateRegS.DateRegister;
+volatile time_date_reg_t SendTimeDateRegS;
+volatile uint8_t *PtrSendTDSPICR = (uint8_t *)&SendTimeDateRegS.SPICommand;
+volatile uint8_t *PtrSendTDDateR = (uint8_t *)&SendTimeDateRegS.DateRegister;
 
 int main(void)
 {
@@ -90,14 +93,14 @@ int main(void)
 		}
 	      Deconfigure_GPIOB_Test();
 	      /* Backup time year masked */
-	      if((RTC->BKP2R & 0xFF1F0000) != TimeDateRegS.DateRegister)
+	      if((RTC->BKP2R & 0xFF1F0000) != SendTimeDateRegS.DateRegister)
 		{
 		  MyStateRegister |= STORE_TIMESTAMP_DAT;
 		}
-	      RTC->BKP1R = TimeDateRegS.TimeRegister;
+	      RTC->BKP1R = SendTimeDateRegS.TimeRegister;
 	      if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
 		{
-		  RTC->BKP2R = TimeDateRegS.DateRegister;
+		  RTC->BKP2R = SendTimeDateRegS.DateRegister;
 		}
 	      StoreDateTime();
 	      if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
@@ -242,12 +245,12 @@ int main(void)
 	      MyStateRegister &= ~(SPI_READROM);
 	      if(ReadSPIEEPROMaddr != SPIEEPROMaddr)
 		{
-		  TimeDateRegS.length = TIME_LENGTH;
-		  TimeDateRegS.SPICommand = READ;
-		  TimeDateRegS.SPIAddress[0] = (ReadSPIEEPROMaddr >> 16) & 0xFF;
-		  TimeDateRegS.SPIAddress[1] = (ReadSPIEEPROMaddr >> 8) & 0xFF;
-		  TimeDateRegS.SPIAddress[2] = ReadSPIEEPROMaddr & 0xFF;
-		  Write_SPI(PtrTDSPICR, TO_EPR_LENGTH);
+		  SendTimeDateRegS.length = TIME_LENGTH;
+		  SendTimeDateRegS.SPICommand = READ;
+		  SendTimeDateRegS.SPIAddress[0] = (ReadSPIEEPROMaddr >> 16) & 0xFF;
+		  SendTimeDateRegS.SPIAddress[1] = (ReadSPIEEPROMaddr >> 8) & 0xFF;
+		  SendTimeDateRegS.SPIAddress[2] = ReadSPIEEPROMaddr & 0xFF;
+		  Write_SPI(TO_EPR_LENGTH);
 		  ReadSPIEEPROMaddr = IncreaseSPIEEPROMaddr(ReadSPIEEPROMaddr, TIME_LENGTH);
 		  MyStateRegister |= UART_PROGRESS;
 		  EnableTransmit_USART();
@@ -272,12 +275,14 @@ int main(void)
 		  StartLPTIM1(35);
 		  Configure_Lpwr(ModeSleep);
 		  // Read Status Reg
-		  TimeDateRegS.SPICommand = RDSR;
-		  Write_SPI(PtrTDSPICR, 2);
+		  SendTimeDateRegS.SPICommand = RDSR;
+		  Write_SPI(2);
 		}
 	      while ((TimeDateRegS.SPIAddress[0] & (WIP)) == (WIP));
 	      DeconfigureLPTIM1();
 	      ReadSPIEEPROMaddr = LastReadSPIEEPROMaddr;
+	      /* Set length 4 bytes to UART communication */
+	      TimeDateRegS.length = TIME_LENGTH;
 	      MyStateRegister |= SPI_READROM;
 	    }
 	  else if((MyStateRegister & (INIT_UART)) == (INIT_UART))
@@ -318,14 +323,14 @@ void StoreDateTime()
       spibufflength = TIME_DATE_LENGTH;
       if((MyStateRegister & (INIT_UART)) == (INIT_UART))
 	{
-	  *PtrTDDateR = 0xC0; // Data flag & during read
+	  *PtrSendTDDateR = 0xC0; // Data flag & during read
 	}
       else
 	{
-	  *PtrTDDateR = 0x40; // Date flag
+	  *PtrSendTDDateR = 0x40; // Date flag
 	}
       /* Read date register and store only year */
-      TimeDateRegS.DateRegister |= __REV(RTC->DR & 0xFF0000);
+      SendTimeDateRegS.DateRegister |= __REV(RTC->DR & 0xFF0000);
       /* Test the page barrier! SPI_EPR_PG_SUB1 page size in bytes */
       /* It uses binary modulo */
       if(((SPIEEPROMaddr + 4) & SPI_EPR_PG_SUB1) == 0)
@@ -334,21 +339,21 @@ void StoreDateTime()
 	}
     }
   Configure_GPIO_SPI1();
-  TimeDateRegS.SPICommand = WREN;
-  Write_SPI(PtrTDSPICR, 1);
+  SendTimeDateRegS.SPICommand = WREN;
+  Write_SPI(1);
   // Read Status Reg
-  TimeDateRegS.SPICommand = RDSR;
-  Write_SPI(PtrTDSPICR, 2);
+  SendTimeDateRegS.SPICommand = RDSR;
+  Write_SPI(2);
   if((TimeDateRegS.SPIAddress[0] & (WEL)) == (WEL))
     {
       // Save data to SPIEEPROM
-      TimeDateRegS.SPICommand = WRITE;
-      TimeDateRegS.SPIAddress[0] = (SPIEEPROMaddr >> 16) & 0xFF;
-      TimeDateRegS.SPIAddress[1] = (SPIEEPROMaddr >> 8) & 0xFF;
-      TimeDateRegS.SPIAddress[2] = SPIEEPROMaddr & 0xFF;
+      SendTimeDateRegS.SPICommand = WRITE;
+      SendTimeDateRegS.SPIAddress[0] = (SPIEEPROMaddr >> 16) & 0xFF;
+      SendTimeDateRegS.SPIAddress[1] = (SPIEEPROMaddr >> 8) & 0xFF;
+      SendTimeDateRegS.SPIAddress[2] = SPIEEPROMaddr & 0xFF;
       if(pagebarrier == 0)
 	{
-	  Write_SPI(PtrTDSPICR, TO_EPR_ADDRESSLENGTHwCOMMAND + spibufflength);
+	  Write_SPI(TO_EPR_ADDRESSLENGTHwCOMMAND + spibufflength);
 	  SPIEEPROMaddr = IncreaseSPIEEPROMaddr(SPIEEPROMaddr, spibufflength);
 	}
       /* if at the barrier divide date and time */
@@ -356,7 +361,7 @@ void StoreDateTime()
       else
 	{
 	  spibufflength = TIME_LENGTH;
-	  Write_SPI(PtrTDSPICR, TO_EPR_LENGTH);
+	  Write_SPI(TO_EPR_LENGTH);
 	  SPIEEPROMaddr = IncreaseSPIEEPROMaddr(SPIEEPROMaddr, spibufflength);
 	  /* Wait till succesful write */
 	  ConfigureLPTIM1();
@@ -365,19 +370,19 @@ void StoreDateTime()
 	      StartLPTIM1(35);
 	      Configure_Lpwr(ModeSleep);
 	      // Read Status Reg
-	      TimeDateRegS.SPICommand = RDSR;
-	      Write_SPI(PtrTDSPICR, 2);
+	      SendTimeDateRegS.SPICommand = RDSR;
+	      Write_SPI(2);
 	    }
 	  while ((TimeDateRegS.SPIAddress[0] & (WIP)) == (WIP));
 	  DeconfigureLPTIM1();
-	  TimeDateRegS.SPICommand = WREN;
-	  Write_SPI(PtrTDSPICR, 1);
-	  TimeDateRegS.SPICommand = WRITE;
-	  TimeDateRegS.SPIAddress[0] = ((SPIEEPROMaddr + 4) >> 16) & 0xFF;
-	  TimeDateRegS.SPIAddress[1] = ((SPIEEPROMaddr + 4) >> 8) & 0xFF;
-	  TimeDateRegS.SPIAddress[2] = (SPIEEPROMaddr + 4) & 0xFF;
-	  TimeDateRegS.TimeRegister = TimeDateRegS.DateRegister;
-	  Write_SPI(PtrTDSPICR, TO_EPR_LENGTH);
+	  SendTimeDateRegS.SPICommand = WREN;
+	  Write_SPI(1);
+	  SendTimeDateRegS.SPICommand = WRITE;
+	  SendTimeDateRegS.SPIAddress[0] = ((SPIEEPROMaddr + TIME_LENGTH) >> 16) & 0xFF;
+	  SendTimeDateRegS.SPIAddress[1] = ((SPIEEPROMaddr + TIME_LENGTH) >> 8) & 0xFF;
+	  SendTimeDateRegS.SPIAddress[2] = (SPIEEPROMaddr + TIME_LENGTH) & 0xFF;
+	  SendTimeDateRegS.TimeRegister = TimeDateRegS.DateRegister;
+	  Write_SPI(TO_EPR_LENGTH);
 	  SPIEEPROMaddr = IncreaseSPIEEPROMaddr(SPIEEPROMaddr, spibufflength);
 	}
       RTC->BKP0R = SPIEEPROMaddr;

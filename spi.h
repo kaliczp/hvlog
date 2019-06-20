@@ -28,8 +28,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 void Configure_GPIO_SPI1(void);
 void Deconfigure_GPIO_SPI1(uint8_t SPI_Standalone);
-void Configure_SPI1(void);
+void Configure_SPI1(uint8_t length);
 void Activate_SPI1(void);
 void Deactivate_SPI1(void);
 void Deconfigure_SPI1(void);
-void Write_SPI(volatile uint8_t *buff, uint8_t length);
+void Write_SPI(uint8_t length);

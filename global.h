@@ -87,5 +87,8 @@ extern volatile uint32_t MyStateRegister;
 extern volatile time_date_reg_t TimeDateRegS;
 extern volatile uint8_t *PtrTimDatS;
 extern volatile uint8_t *PtrTDTimeR;
+extern volatile uint8_t *PtrTDSPICR;
+extern volatile time_date_reg_t SendTimeDateRegS;
+extern volatile uint8_t *PtrSendTDSPICR;
 extern volatile uint8_t uartsend;
 extern volatile uint8_t CharToReceive;
