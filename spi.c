@@ -80,7 +80,7 @@ void Deconfigure_GPIO_SPI1(uint8_t SPI_Standalone)
   * Param   None
   * Retval  None
   */
-void Configure_SPI1(void)
+void Configure_SPI1(uint8_t length)
 {
   /* Enable the peripheral clock SPI1 */
   RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
@@ -91,7 +91,40 @@ void Configure_SPI1(void)
   /* (2) Slave select output enabled, RXNE IT */
   SPI1->CR1 = SPI_CR1_MSTR | SPI_CR1_BR_0; /* (1) */
   /* SPI1->CR2 = SPI_CR2_SSOE | SPI_CR2_RXNEIE; /\* (2) *\/ */
-  SPI1->CR2 = SPI_CR2_SSOE; /* (2) */
+  SPI1->CR2 = SPI_CR2_SSOE | SPI_CR2_RXDMAEN; /* (2) */
+
+    /* Enable the peripheral clock DMA1 */
+  RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+
+  /* DMA1 Channel2 SPI1_RX config */
+  /* (3)  Map SPI1_RX DMA channel */
+  /* (4) Peripheral address */
+  /* (5) Memory address */
+  /* (6) Data size */
+  /* (7) Memory increment */
+  /*     Peripheral to memory */
+  /*     8-bit transfer */
+  /*     Priority high */
+  DMA1_CSELR->CSELR = (DMA1_CSELR->CSELR & ~DMA_CSELR_C2S) | (1 << (1 * 4)); /* (3) */
+  DMA1_Channel2->CPAR = (uint32_t)&(SPI1->DR); /* (4) */
+    DMA1_Channel2->CMAR = (uint32_t)PtrTDSPICR; /* (5) */
+  DMA1_Channel2->CNDTR = length; /* (6) */
+  DMA1_Channel2->CCR |= DMA_CCR_MINC | DMA_CCR_PL_1 | DMA_CCR_EN; /* (7) */
+
+  /* DMA1 Channel3 SPI1_TX config */
+  /* (8)  Map SPI1_TX DMA channel */
+  /* (9) Peripheral address */
+  /* (10 Memory address */
+  /* (11) Memory increment */
+  /*     Memory to peripheral*/
+  /*     8-bit transfer */
+  DMA1_CSELR->CSELR = (DMA1_CSELR->CSELR & ~DMA_CSELR_C3S) | (1 << (2 * 4)); /* (8) */
+  DMA1_Channel3->CPAR = (uint32_t)&(SPI1->DR); /* (9) */
+    DMA1_Channel3->CMAR = (uint32_t)PtrSendTDSPICR; /* (10) */
+  DMA1_Channel3->CCR |= DMA_CCR_MINC | DMA_CCR_DIR; /* (11) */
+
+  /* (12) Enable TX in SPI */
+  SPI1->CR2 |= SPI_CR2_TXDMAEN; /* (12) */
 }
 
 void Activate_SPI1(void)
@@ -109,37 +142,41 @@ void Activate_SPI1(void)
 
 void Deactivate_SPI1(void)
 {
+  /* Disable DMA streams */
+  DMA1_Channel3->CCR &= ~(DMA_CCR_EN);
+  DMA1_Channel2->CCR &= ~(DMA_CCR_EN);
   /* wait until BSY=0 */
   while((SPI1->SR & SPI_SR_BSY) == SPI_SR_BSY)
     {
     }
   /* Disable SPI1 */
   SPI1->CR1 &= ~(SPI_CR1_SPE);
+  /* Disable DMA Tx and Rx buffers by clearing CR2 bits */
+  SPI1->CR2 &= ~(SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN);
 }
 
 void Deconfigure_SPI1(void)
 {
+  /* Disable the peripheral clock DMA11 */
+  RCC->AHBENR &= ~(RCC_AHBENR_DMA1EN);
+
   /* Disable SPI1 periperal clock */
   RCC->APB2ENR &= ~(RCC_APB2ENR_SPI1EN);
 }
 
-void Write_SPI(volatile uint8_t *buff, uint8_t length)
+void Write_SPI(uint8_t length)
 {
-  Configure_SPI1();
+  Configure_SPI1(length);
   Activate_SPI1();
-  /* Test SPI */
-  /* Test Tx empty */
-  for(uint8_t i=0; i < length; i++)
+  /* Start transfer */
+  DMA1_Channel3->CCR &= ~(DMA_CCR_EN);
+  DMA1_Channel3->CNDTR = length; /* Data size */
+  DMA1_Channel3->CCR |= DMA_CCR_EN;
+  /* Wait until transfer complete */
+  while((DMA1->ISR & (DMA_ISR_TCIF2 | DMA_ISR_TCIF3)) != (DMA_ISR_TCIF2 | DMA_ISR_TCIF3))
     {
-      while((SPI1->SR & SPI_SR_TXE) != SPI_SR_TXE)
-	{
-	}
-      *(uint8_t *)&(SPI1->DR) = *buff;
-      while((SPI1->SR & SPI_SR_RXNE) != SPI_SR_RXNE)
-	{
-	}
-      *buff++ = SPI1->DR;
     }
+  DMA1->IFCR |= (DMA_IFCR_CGIF2 | DMA_IFCR_CGIF3); /* Clear interrupt flags */
   while((SPI1->SR & SPI_SR_TXE) != SPI_SR_TXE)
     {
     }
