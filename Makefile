@@ -6,6 +6,7 @@
 #  	make veryclean		Remove all system files and snippets link
 #	make main.elf		Compile project
 #	make main.bin		Make binary
+#	make dependencies	Lists dependencies
 #	make tags		Make etags for emacs
 
 TARGET	= main
@@ -63,6 +64,9 @@ $(TARGET).bin: $(TARGET).elf
 
 $(TARGET).elf: startup_$(MCU_LC).s $(OBJS) 
 	$(CC) $(UDEFS) $(DEFS) $(CFLAGS) $(INCS) $(LDFLAGS) $^ -o $@
+
+dependencies:
+	$(CC) $(UDEFS) $(DEFS) $(CFLAGS) $(INCS) $(LDFLAGS) $^ -M $(TARGET).c
 
 ## Emacs etags
 tags:
