@@ -6,6 +6,7 @@
 #  	make veryclean		Remove all system files and snippets link
 #	make main.elf		Compile project
 #	make main.bin		Make binary
+#	make disassemble	Make disassembled code
 #	make dependencies	Lists dependencies
 #	make tags		Make etags for emacs
 
@@ -27,6 +28,7 @@ MCU_PACK	= K4Tx
 PREFIX	= arm-none-eabi
 CC	= $(PREFIX)-gcc
 OBJCOPY	= $(PREFIX)-objcopy
+OBJDUMP	= $(PREFIX)-objdump
 
 ## Define correct mcu for header file selection an inline
 DEFS	= -D$(MCU_UC)xx
@@ -68,6 +70,9 @@ $(TARGET).elf: startup_$(MCU_LC).s $(OBJS)
 dependencies:
 	$(CC) $(UDEFS) $(DEFS) $(CFLAGS) $(INCS) $(LDFLAGS) $^ -M $(TARGET).c
 
+disassemble:
+	$(OBJDUMP) -S $(TARGET).elf > $(TARGET).obj.asm
+
 ## Emacs etags
 tags:
 	etags *h *c $(CUBE_CORE)/core_cm0plus.h $(CUBE_CORE)/arm_common_tables.h $(CUBE_CORE)/cmsis_gcc.h $(CUBE_STM32)/Include/$(MCU_LC).h system_$(MCU_FAMILY).c startup_$(MCU_LC).s $(MCU_UC)$(MCU_PACK)_FLASH.ld
@@ -85,6 +90,7 @@ clean:
 	rm -f $(TARGET).elf
 	rm -f $(TARGET).map
 	rm -f $(TARGET).lst
+	rm -f $(TARGET).obj.asm
 
 ## Remove all system files and snippets link
 veryclean:
