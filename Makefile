@@ -58,11 +58,10 @@ OBJS := ${SRCS:.c = .o}
 
 .PHONY: tags template clean veryclean
 
-# %.o : %.c
-#	$(CC) $(DEFS) $(CFLAGS) $(INCS) -c $< -o $@
+all: $(TARGET).bin
 
-$(TARGET).bin: $(TARGET).elf
-	$(OBJCOPY) -O binary $(TARGET).elf $(TARGET).bin
+%.bin: %.elf
+	$(OBJCOPY) $< -O binary $@
 
 $(TARGET).elf: startup_$(MCU_LC).s $(OBJS) 
 	$(CC) $(UDEFS) $(DEFS) $(CFLAGS) $(INCS) $(LDFLAGS) $^ -o $@
