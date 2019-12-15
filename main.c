@@ -51,6 +51,7 @@ int main(void)
 {
   FromLowPower = 0;
   RCC->APB1ENR |= RCC_APB1ENR_PWREN; // Enable PWR
+  SwitchVregulatorRange1();
   Enable_RTC_registers();
   /* If RTC is not set configure and initialise */
   if((PWR->CSR & PWR_CSR_SBF) == (PWR_CSR_SBF))
