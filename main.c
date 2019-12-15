@@ -316,6 +316,7 @@ void StoreDateTime()
 {
   uint8_t spibufflength = TIME_LENGTH;
   uint8_t pagebarrier = 0;
+  uint8_t cyclecount;
 
   if((MyStateRegister & (STORE_TIMESTAMP_DAT)) == (STORE_TIMESTAMP_DAT))
     {
@@ -342,7 +343,17 @@ void StoreDateTime()
   Write_SPI(1);
   // Read Status Reg
   SendTimeDateRegS.SPICommand = RDSR;
-  Write_SPI(2);
+  ConfigureLPTIM1();
+  cyclecount = 0;
+  do
+    {
+      StartLPTIM1(35);
+      Configure_Lpwr(ModeSleep);
+      Write_SPI(2);
+      cyclecount++;
+    }
+  while(((TimeDateRegS.SPIAddress & (WIP)) == (WIP)) & (cyclecount < 5));
+  DeconfigureLPTIM1();
   if((TimeDateRegS.SPIAddress & (WEL)) == (WEL))
     {
       // Save data to SPIEEPROM
