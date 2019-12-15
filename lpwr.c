@@ -24,6 +24,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 #include "lpwr.h"
 
+void SwitchVregulatorRange1(void)
+{
+  /* (1) Select voltage scale 1 (1.65V - 1.95V) i.e. (01) for VOS bits
+     in PWR_CR During voltage scaling configuration, the system clock
+     is stopped until the regulator is stabilized (VOSF=0).*/
+  /* (2) Check voltage scalin flag */
+  PWR->CR = (PWR->CR & ~(PWR_CR_VOS)) | PWR_CR_VOS_0; /* (1) */
+  while((PWR->CSR & PWR_CSR_VOSF) == PWR_CSR_VOSF) /* (2) */
+    {
+    }
+}
+
 void Configure_Lpwr(uint8_t LpwrMode)
 {
   /* (0) Enable power module */
