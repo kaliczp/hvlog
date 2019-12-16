@@ -89,10 +89,10 @@ void Configure_SPI1(uint8_t length)
   RCC->AHBENR |= RCC_AHBENR_DMA1EN;
 
   /* Configure SPI1 in master */
-  /* (1) Master selection, BR: Fpclk/4
+  /* (1) Master selection, BR: Fpclk/8
          CPOL and CPHA at zero (rising first edge), 8-bit data frame, NSS output enable (SSM=0,SSOE = 1). */
   /* (2) Slave select output enabled, RXNE IT */
-  SPI1->CR1 = SPI_CR1_MSTR | SPI_CR1_BR_0; /* (1) */
+  SPI1->CR1 = SPI_CR1_MSTR | SPI_CR1_BR_1; /* (1) */
   /* SPI1->CR2 = SPI_CR2_SSOE | SPI_CR2_RXNEIE; /\* (2) *\/ */
   SPI1->CR2 = SPI_CR2_SSOE | SPI_CR2_RXDMAEN; /* (2) */
 
