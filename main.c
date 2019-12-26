@@ -352,7 +352,7 @@ void StoreDateTime()
       Write_SPI(2);
       cyclecount++;
     }
-  while(((TimeDateRegS.SPIAddress & (WIP)) == (WIP)) & (cyclecount < 5));
+  while(((TimeDateRegS.SPIAddress & (WIP)) == (WIP)) && (cyclecount < 4));
   DeconfigureLPTIM1();
   if((TimeDateRegS.SPIAddress & (WEL)) == (WEL))
     {
