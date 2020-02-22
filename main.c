@@ -354,6 +354,14 @@ void StoreDateTime()
       cyclecount++;
     }
   while(((TimeDateRegS.SPIAddress[0] & (WIP)) == (WIP)) && (cyclecount < 4));
+  cyclecount =0;
+  while(((TimeDateRegS.SPIAddress[0] & (WEL)) != (WEL)) && (cyclecount < 4))
+    {
+      StartLPTIM1(35);
+      Configure_Lpwr(ModeSleep);
+      Write_SPI(2);
+      cyclecount++;
+    }
   DeconfigureLPTIM1();
   if((TimeDateRegS.SPIAddress[0] & (WEL)) == (WEL))
     {
