@@ -101,15 +101,18 @@ void Configure_SPI1(uint8_t length)
   /* (4) Peripheral address */
   /* (5) Memory address */
   /* (6) Data size */
-  /* (7) Memory increment */
+  /* (7a) Memory increment */
   /*     Peripheral to memory */
   /*     8-bit transfer */
-  /*     Priority high */
+  /*     Priority very high */
+  /*     DMA interrupt enabled */
+  /* (7b) DMA enabled */
   DMA1_CSELR->CSELR = (DMA1_CSELR->CSELR & ~DMA_CSELR_C2S) | (1 << (1 * 4)); /* (3) */
   DMA1_Channel2->CPAR = (uint32_t)&(SPI1->DR); /* (4) */
     DMA1_Channel2->CMAR = (uint32_t)PtrTDSPICR; /* (5) */
   DMA1_Channel2->CNDTR = length; /* (6) */
-  DMA1_Channel2->CCR |= DMA_CCR_MINC | DMA_CCR_PL_1 | DMA_CCR_EN; /* (7) */
+  DMA1_Channel2->CCR |= DMA_CCR_MINC | DMA_CCR_PL_1 | DMA_CCR_PL_0 | DMA_CCR_TCIE ; /* (7a) */
+  DMA1_Channel2->CCR |= DMA_CCR_EN; /* (7b) */
 
   /* DMA1 Channel3 SPI1_TX config */
   /* (8)  Map SPI1_TX DMA channel */
@@ -122,6 +125,12 @@ void Configure_SPI1(uint8_t length)
   DMA1_Channel3->CPAR = (uint32_t)&(SPI1->DR); /* (9) */
     DMA1_Channel3->CMAR = (uint32_t)PtrSendTDSPICR; /* (10) */
   DMA1_Channel3->CCR |= DMA_CCR_MINC | DMA_CCR_DIR; /* (11) */
+
+  /* Configure IT */
+  /* (11a) Set priority for DMA1_Channel2_3_IRQn */
+  /* (11b) Enable DMA1_Channel2_3_IRQn */
+  NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0); /* (11a) */
+  NVIC_EnableIRQ(DMA1_Channel2_3_IRQn); /* (11b) */
 
   /* (12) Enable TX in SPI */
   SPI1->CR2 |= SPI_CR2_TXDMAEN; /* (12) */
@@ -142,13 +151,19 @@ void Activate_SPI1(void)
 
 void Deactivate_SPI1(void)
 {
-  /* Disable DMA streams */
-  DMA1_Channel3->CCR &= ~(DMA_CCR_EN);
-  DMA1_Channel2->CCR &= ~(DMA_CCR_EN);
+  while((SPI1->SR & SPI_SR_TXE) != SPI_SR_TXE)
+    {
+    }
   /* wait until BSY=0 */
   while((SPI1->SR & SPI_SR_BSY) == SPI_SR_BSY)
     {
     }
+  /* Disable DMA1 SPI IRQ */
+  NVIC_DisableIRQ(DMA1_Channel2_3_IRQn);
+  /* Disable DMA TX */
+  DMA1_Channel3->CCR &= ~(DMA_CCR_EN);
+  /* Disable DMA RX */
+  DMA1_Channel2->CCR &= ~(DMA_CCR_EN);
   /* Disable SPI1 */
   SPI1->CR1 &= ~(SPI_CR1_SPE);
   /* Disable DMA Tx and Rx buffers by clearing CR2 bits */
@@ -172,14 +187,21 @@ void Write_SPI(uint8_t length)
   DMA1_Channel3->CCR &= ~(DMA_CCR_EN);
   DMA1_Channel3->CNDTR = length; /* Data size */
   DMA1_Channel3->CCR |= DMA_CCR_EN;
+
   /* Wait until transfer complete */
-  while((DMA1->ISR & (DMA_ISR_TCIF2 | DMA_ISR_TCIF3)) != (DMA_ISR_TCIF2 | DMA_ISR_TCIF3))
-    {
-    }
-  DMA1->IFCR |= (DMA_IFCR_CGIF2 | DMA_IFCR_CGIF3); /* Clear interrupt flags */
-  while((SPI1->SR & SPI_SR_TXE) != SPI_SR_TXE)
-    {
-    }
+  Configure_Lpwr(ModeSleep);
   Deactivate_SPI1();
   Deconfigure_SPI1();
+}
+
+void DMA1_Channel2_3_IRQHandler(void)
+{
+  if((DMA1->ISR & DMA_ISR_TCIF2) == DMA_ISR_TCIF2)
+    {
+      DMA1->IFCR |= DMA_IFCR_CTCIF2; /* Clear transfer complete interrrupt flag */
+    }
+  else
+    {
+      DMA1->IFCR |= (DMA_IFCR_CGIF2 | DMA_IFCR_CGIF3); /* Clear global interrrupt flags */
+    }
 }

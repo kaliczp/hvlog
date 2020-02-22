@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 #include "stm32l0xx.h"
 #include "global.h"
 #include "lptim.h"
+#include "lpwr.h"
 
 void Configure_GPIO_SPI1(void);
 void Deconfigure_GPIO_SPI1(uint8_t SPI_Standalone);
