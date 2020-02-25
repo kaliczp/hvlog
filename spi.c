@@ -151,11 +151,8 @@ void Activate_SPI1(void)
 
 void Deactivate_SPI1(void)
 {
-  while((SPI1->SR & SPI_SR_TXE) != SPI_SR_TXE)
-    {
-    }
-  /* wait until BSY=0 */
-  while((SPI1->SR & SPI_SR_BSY) == SPI_SR_BSY)
+  /* wait until TXE=1 and BSY=0 */
+  while((SPI1->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE)
     {
     }
   /* Disable DMA1 SPI IRQ */
