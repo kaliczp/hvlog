@@ -7,3 +7,7 @@ Compile with low power debug and actual time, date and RTC calibration parameter
 #+BEGIN_SRC sh
 make UDEFS=-DDEBUG UDEFS+=-DCURR_TIM=0x00182130 UDEFS+=-DCURR_DAT=0x00190513 UDEFS+=-DRTC_CALM
 #+END_SRC
+
+* Hardware
+The underlying hardware source is available at
+[[https://github.com/kaliczp/ST32L0_32]].
